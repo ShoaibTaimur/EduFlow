@@ -362,4 +362,4 @@ new_start < existing_end AND new_end > existing_start
 
 ## License
 
-Add your preferred license before publishing publicly.
+This project is licensed under the license defined in this GitHub repository.
