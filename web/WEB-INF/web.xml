@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+
+  <display-name>EduFlow</display-name>
+
+  <filter>
+    <filter-name>SessionFilter</filter-name>
+    <filter-class>com.eduflow.servlet.SessionFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>SessionFilter</filter-name>
+    <url-pattern>*.jsp</url-pattern>
+  </filter-mapping>
+
+  <servlet>
+    <servlet-name>LoginServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.LoginServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LoginServlet</servlet-name>
+    <url-pattern>/login</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>LogoutServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.LogoutServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LogoutServlet</servlet-name>
+    <url-pattern>/logout</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>StudentScheduleServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.StudentScheduleServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>StudentScheduleServlet</servlet-name>
+    <url-pattern>/student/schedule</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>TeacherRequestServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.TeacherRequestServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TeacherRequestServlet</servlet-name>
+    <url-pattern>/teacher/request</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>AdminApprovalServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.AdminApprovalServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AdminApprovalServlet</servlet-name>
+    <url-pattern>/admin/approval</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>AnnouncementServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.AnnouncementServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AnnouncementServlet</servlet-name>
+    <url-pattern>/announcements</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DaySettingServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.DaySettingServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DaySettingServlet</servlet-name>
+    <url-pattern>/day-settings</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>login.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>

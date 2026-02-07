@@ -1,0 +1,38 @@
+# Build output
+build/
+dist/
+out/
+
+# Java / JVM
+*.class
+*.log
+hs_err_pid*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local environment/config overrides
+*.local
+.env
+.env.*
+
+# Tomcat runtime
+logs/
+work/
+temp/
+
+# Dependency jars (keep placeholders if needed)
+# Remove this ignore line if you want to commit JDBC jar
+lib/*.jar
+!lib/.gitkeep
+
+# Node (if frontend tooling added later)
+node_modules/

@@ -1,0 +1,10 @@
+services:
+  oraclexe:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oraclexe
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    environment:
+      ORACLE_PASSWORD: "1234"
+    restart: unless-stopped
