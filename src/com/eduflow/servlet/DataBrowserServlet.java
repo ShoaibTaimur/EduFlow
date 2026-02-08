@@ -30,10 +30,14 @@ public class DataBrowserServlet extends BaseServlet {
     queries.put("TEACHERS", "SELECT teacher_id, user_id FROM TEACHERS ORDER BY teacher_id");
     queries.put("SUBJECTS", "SELECT subject_id, subject_code, name, dept_id FROM SUBJECTS ORDER BY subject_id");
     queries.put("CLASSROOMS", "SELECT room_id, room_name, capacity FROM CLASSROOMS ORDER BY room_id");
-    queries.put("SCHEDULE", "SELECT schedule_id, dept_id, batch_id, section_id, subject_id, teacher_id, room_id, day, TO_CHAR(time_start,'HH24:MI') AS time_start, TO_CHAR(time_end,'HH24:MI') AS time_end, status FROM SCHEDULE ORDER BY schedule_id");
-    queries.put("SCHEDULE_REQUESTS", "SELECT request_id, teacher_id, status, submitted_at, reviewed_at, admin_id FROM SCHEDULE_REQUESTS ORDER BY request_id DESC");
-    queries.put("ANNOUNCEMENTS", "SELECT announcement_id, message, created_at FROM ANNOUNCEMENTS ORDER BY announcement_id DESC");
-    queries.put("DAY_SETTINGS", "SELECT day_name, day_type, updated_by, updated_at FROM DAY_SETTINGS ORDER BY day_name");
+    queries.put("SCHEDULE",
+        "SELECT schedule_id, dept_id, batch_id, section_id, subject_id, teacher_id, room_id, day, TO_CHAR(time_start,'HH24:MI') AS time_start, TO_CHAR(time_end,'HH24:MI') AS time_end, status FROM SCHEDULE ORDER BY schedule_id");
+    queries.put("SCHEDULE_REQUESTS",
+        "SELECT request_id, teacher_id, status, submitted_at, reviewed_at, admin_id FROM SCHEDULE_REQUESTS ORDER BY request_id DESC");
+    queries.put("ANNOUNCEMENTS",
+        "SELECT announcement_id, message, created_at FROM ANNOUNCEMENTS ORDER BY announcement_id DESC");
+    queries.put("DAY_SETTINGS",
+        "SELECT day_name, day_type, updated_by, updated_at FROM DAY_SETTINGS ORDER BY day_name");
 
     Map<String, List<Map<String, String>>> data = new LinkedHashMap<>();
     Map<String, List<String>> columns = new LinkedHashMap<>();
@@ -43,7 +47,7 @@ public class DataBrowserServlet extends BaseServlet {
         String table = entry.getKey();
         String sql = entry.getValue();
         try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            ResultSet rs = ps.executeQuery()) {
           List<String> cols = new ArrayList<>();
           int count = rs.getMetaData().getColumnCount();
           for (int i = 1; i <= count; i++) {

@@ -50,7 +50,7 @@ public class LookupDAO {
     String sql = "SELECT batch_id, TO_CHAR(year) FROM BATCHES WHERE dept_id=? ORDER BY year DESC";
     List<LookupOption> list = new ArrayList<>();
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, deptId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -65,10 +65,10 @@ public class LookupDAO {
 
   public List<LookupOption> getSectionsByBatch(int batchId) {
     String sql = "SELECT section_id, section_name FROM SECTIONS " +
-                 "WHERE batch_id=? AND UPPER(section_name) IN ('A','B','C','D') ORDER BY section_name";
+        "WHERE batch_id=? AND UPPER(section_name) IN ('A','B','C','D') ORDER BY section_name";
     List<LookupOption> list = new ArrayList<>();
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, batchId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -85,7 +85,7 @@ public class LookupDAO {
     String sql = "SELECT subject_id, subject_code || ' - ' || name FROM SUBJECTS WHERE dept_id=? ORDER BY subject_code";
     List<LookupOption> list = new ArrayList<>();
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, deptId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -103,16 +103,18 @@ public class LookupDAO {
   }
 
   public List<LookupOption> getTeachers() {
-    return queryOptions("SELECT t.teacher_id, u.name FROM TEACHERS t JOIN USERS u ON t.user_id=u.user_id ORDER BY u.name");
+    return queryOptions(
+        "SELECT t.teacher_id, u.name FROM TEACHERS t JOIN USERS u ON t.user_id=u.user_id ORDER BY u.name");
   }
 
   public String getSubjectCodeById(int subjectId) {
     String sql = "SELECT subject_code FROM SUBJECTS WHERE subject_id=?";
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, subjectId);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getString(1);
+        if (rs.next())
+          return rs.getString(1);
       }
     } catch (Exception e) {
       throw new RuntimeException("Lookup subject code failed", e);
@@ -122,21 +124,24 @@ public class LookupDAO {
 
   public Integer resolveDeptId(String deptValue) {
     Integer num = tryParseInt(deptValue);
-    if (num != null) return num;
+    if (num != null)
+      return num;
     String sql = "SELECT dept_id FROM DEPARTMENTS WHERE LOWER(dept_name)=LOWER(?)";
     return queryForId(sql, deptValue);
   }
 
   public Integer resolveBatchId(int deptId, String batchValue) {
     Integer num = tryParseInt(batchValue);
-    if (num != null) return num;
+    if (num != null)
+      return num;
     String sql = "SELECT batch_id FROM BATCHES WHERE dept_id=? AND year=?";
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, deptId);
       ps.setInt(2, Integer.parseInt(batchValue));
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt(1);
+        if (rs.next())
+          return rs.getInt(1);
       }
     } catch (Exception e) {
       throw new RuntimeException("Resolve batch failed", e);
@@ -147,21 +152,23 @@ public class LookupDAO {
   public Integer resolveSectionId(int batchId, String sectionValue) {
     String normalized = normalizeSection(sectionValue);
     Integer num = tryParseInt(normalized);
-    if (num != null) return num;
+    if (num != null)
+      return num;
     String sql = "SELECT section_id FROM SECTIONS WHERE batch_id=? AND LOWER(section_name)=LOWER(?)";
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, batchId);
       ps.setString(2, normalized);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt(1);
+        if (rs.next())
+          return rs.getInt(1);
       }
     } catch (Exception e) {
       throw new RuntimeException("Resolve section failed", e);
     }
     String fallbackSql = "SELECT section_id FROM SECTIONS WHERE LOWER(section_name)=LOWER(?) FETCH FIRST 2 ROWS ONLY";
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(fallbackSql)) {
+        PreparedStatement ps = conn.prepareStatement(fallbackSql)) {
       ps.setString(1, normalized);
       try (ResultSet rs = ps.executeQuery()) {
         int count = 0;
@@ -170,7 +177,8 @@ public class LookupDAO {
           id = rs.getInt(1);
           count++;
         }
-        if (count == 1) return id;
+        if (count == 1)
+          return id;
       }
     } catch (Exception e) {
       throw new RuntimeException("Resolve section failed", e);
@@ -180,17 +188,19 @@ public class LookupDAO {
 
   public Integer resolveSubjectIdByCode(String subjectCode) {
     Integer num = tryParseInt(subjectCode);
-    if (num != null) return num;
+    if (num != null)
+      return num;
     String sql = "SELECT subject_id FROM SUBJECTS WHERE LOWER(subject_code)=LOWER(?)";
     return queryForId(sql, subjectCode);
   }
 
   private Integer queryForId(String sql, String value) {
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, value);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt(1);
+        if (rs.next())
+          return rs.getInt(1);
       }
     } catch (Exception e) {
       throw new RuntimeException("Lookup failed", e);
@@ -201,8 +211,8 @@ public class LookupDAO {
   private List<LookupOption> queryOptions(String sql) {
     List<LookupOption> list = new ArrayList<>();
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
         list.add(new LookupOption(rs.getInt(1), rs.getString(2)));
       }
@@ -217,7 +227,8 @@ public class LookupDAO {
     try (PreparedStatement ps = conn.prepareStatement(find)) {
       ps.setString(1, deptName);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt(1);
+        if (rs.next())
+          return rs.getInt(1);
       }
     }
     try (PreparedStatement ps = conn.prepareStatement("INSERT INTO DEPARTMENTS (dept_name) VALUES (?)")) {
@@ -227,7 +238,8 @@ public class LookupDAO {
     try (PreparedStatement ps = conn.prepareStatement(find)) {
       ps.setString(1, deptName);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt(1);
+        if (rs.next())
+          return rs.getInt(1);
       }
     }
     throw new IllegalStateException("Department insert verification failed");
@@ -239,7 +251,8 @@ public class LookupDAO {
       ps.setInt(1, deptId);
       ps.setInt(2, year);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt(1);
+        if (rs.next())
+          return rs.getInt(1);
       }
     }
     try (PreparedStatement ps = conn.prepareStatement("INSERT INTO BATCHES (dept_id, year) VALUES (?, ?)")) {
@@ -251,7 +264,8 @@ public class LookupDAO {
       ps.setInt(1, deptId);
       ps.setInt(2, year);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt(1);
+        if (rs.next())
+          return rs.getInt(1);
       }
     }
     throw new IllegalStateException("Batch insert verification failed");
@@ -263,7 +277,8 @@ public class LookupDAO {
       ps.setInt(1, batchId);
       ps.setString(2, section);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return;
+        if (rs.next())
+          return;
       }
     }
     try (PreparedStatement ps = conn.prepareStatement("INSERT INTO SECTIONS (batch_id, section_name) VALUES (?, ?)")) {
@@ -278,10 +293,12 @@ public class LookupDAO {
     try (PreparedStatement ps = conn.prepareStatement(find)) {
       ps.setString(1, code);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return;
+        if (rs.next())
+          return;
       }
     }
-    try (PreparedStatement ps = conn.prepareStatement("INSERT INTO SUBJECTS (subject_code, name, dept_id) VALUES (?, ?, ?)")) {
+    try (PreparedStatement ps = conn
+        .prepareStatement("INSERT INTO SUBJECTS (subject_code, name, dept_id) VALUES (?, ?, ?)")) {
       ps.setString(1, code);
       ps.setString(2, name);
       ps.setInt(3, deptId);
@@ -294,7 +311,8 @@ public class LookupDAO {
     try (PreparedStatement ps = conn.prepareStatement(find)) {
       ps.setString(1, roomName);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return;
+        if (rs.next())
+          return;
       }
     }
     try (PreparedStatement ps = conn.prepareStatement("INSERT INTO CLASSROOMS (room_name, capacity) VALUES (?, ?)")) {
@@ -305,7 +323,8 @@ public class LookupDAO {
   }
 
   private Integer tryParseInt(String value) {
-    if (value == null) return null;
+    if (value == null)
+      return null;
     try {
       return Integer.parseInt(value.trim());
     } catch (Exception e) {
@@ -314,9 +333,11 @@ public class LookupDAO {
   }
 
   private String normalizeSection(String value) {
-    if (value == null) return null;
+    if (value == null)
+      return null;
     String v = value.trim();
-    if (v.isEmpty()) return v;
+    if (v.isEmpty())
+      return v;
     String lower = v.toLowerCase();
     if (lower.startsWith("section")) {
       v = v.substring(7).trim();

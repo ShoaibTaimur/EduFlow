@@ -26,10 +26,11 @@ public class AnnouncementServlet extends BaseServlet {
     sb.append("{\"items\":[");
     for (int i = 0; i < list.size(); i++) {
       Announcement a = list.get(i);
-      if (i > 0) sb.append(",");
+      if (i > 0)
+        sb.append(",");
       sb.append("{\"id\":").append(a.getAnnouncementId())
-        .append(",\"message\":\"").append(JsonUtil.escape(a.getMessage())).append("\"")
-        .append("}");
+          .append(",\"message\":\"").append(JsonUtil.escape(a.getMessage())).append("\"")
+          .append("}");
     }
     sb.append("]}");
     resp.getWriter().write(sb.toString());

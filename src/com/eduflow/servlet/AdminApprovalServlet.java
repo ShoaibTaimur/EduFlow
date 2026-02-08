@@ -48,7 +48,8 @@ public class AdminApprovalServlet extends BaseServlet {
     req.setAttribute("subjects", subjects);
     req.setAttribute("rooms", rooms);
     req.setAttribute("teachers", teachers);
-    req.setAttribute("days", Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"));
+    req.setAttribute("days",
+        Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"));
     DaySettingDAO daySettingDAO = new DaySettingDAO();
     req.setAttribute("dayTypeMap", daySettingDAO.getDayTypeMap());
     if (req.getAttribute("message") == null && req.getParameter("msg") != null) {
@@ -154,24 +155,24 @@ public class AdminApprovalServlet extends BaseServlet {
         return;
       }
       boolean studentConflict = isUpdateRequest
-        ? scheduleDAO.hasStudentConflictExcluding(scheduleId, deptId, batchId, sectionId, day, start, end)
-        : scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end);
+          ? scheduleDAO.hasStudentConflictExcluding(scheduleId, deptId, batchId, sectionId, day, start, end)
+          : scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end);
       if (studentConflict) {
         req.setAttribute("error", "Student schedule conflict detected for selected day/time.");
         doGet(req, resp);
         return;
       }
       boolean roomClash = isUpdateRequest
-        ? scheduleDAO.hasRoomClashExcluding(scheduleId, roomId, day, start, end)
-        : scheduleDAO.hasRoomClash(roomId, day, start, end);
+          ? scheduleDAO.hasRoomClashExcluding(scheduleId, roomId, day, start, end)
+          : scheduleDAO.hasRoomClash(roomId, day, start, end);
       if (roomClash) {
         req.setAttribute("error", "Room clash detected. The selected room already has a class in that slot.");
         doGet(req, resp);
         return;
       }
       boolean teacherAvailable = isUpdateRequest
-        ? scheduleDAO.isTeacherAvailableExcluding(scheduleId, teacherId, day, start, end)
-        : scheduleDAO.isTeacherAvailable(teacherId, day, start, end);
+          ? scheduleDAO.isTeacherAvailableExcluding(scheduleId, teacherId, day, start, end)
+          : scheduleDAO.isTeacherAvailable(teacherId, day, start, end);
       if (!teacherAvailable) {
         req.setAttribute("error", "Teacher is already assigned in that slot.");
         doGet(req, resp);
@@ -180,18 +181,21 @@ public class AdminApprovalServlet extends BaseServlet {
 
       try {
         boolean ok = isUpdateRequest
-          ? scheduleDAO.updateApprovedSchedule(scheduleId, deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start, end)
-          : scheduleDAO.insertApprovedSchedule(deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start, end);
+            ? scheduleDAO.updateApprovedSchedule(scheduleId, deptId, batchId, sectionId, subjectId, teacherId, roomId,
+                day, start, end)
+            : scheduleDAO.insertApprovedSchedule(deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start,
+                end);
         if (ok) {
           requestDAO.updateStatus(requestId, "APPROVED", adminId);
           req.setAttribute("message", isUpdateRequest
-            ? "Update request approved and existing schedule changed"
-            : "Request approved and schedule created");
+              ? "Update request approved and existing schedule changed"
+              : "Request approved and schedule created");
         } else {
           req.setAttribute("error", "Failed to update schedule");
         }
       } catch (RuntimeException e) {
-        req.setAttribute("error", "Approval failed due to database constraints. Verify room/teacher/subject references.");
+        req.setAttribute("error",
+            "Approval failed due to database constraints. Verify room/teacher/subject references.");
       }
     } else if ("updateExisting".equalsIgnoreCase(action)) {
       int scheduleId = parseInt(req.getParameter("scheduleId"));
@@ -236,7 +240,8 @@ public class AdminApprovalServlet extends BaseServlet {
         doGet(req, resp);
         return;
       }
-      scheduleDAO.updateApprovedSchedule(scheduleId, deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start, end);
+      scheduleDAO.updateApprovedSchedule(scheduleId, deptId, batchId, sectionId, subjectId, teacherId, roomId, day,
+          start, end);
       req.setAttribute("message", "Existing schedule updated by admin.");
     } else if ("reject".equalsIgnoreCase(action)) {
       requestDAO.updateStatus(requestId, "REJECTED", adminId);
@@ -256,7 +261,8 @@ public class AdminApprovalServlet extends BaseServlet {
 
   private Integer tryParseInt(String value) {
     try {
-      if (value == null || value.trim().isEmpty()) return null;
+      if (value == null || value.trim().isEmpty())
+        return null;
       return Integer.parseInt(value.trim());
     } catch (Exception e) {
       return null;
@@ -265,18 +271,21 @@ public class AdminApprovalServlet extends BaseServlet {
 
   private int pickInt(String preferred, String fallback) {
     Integer val = tryParseInt(preferred);
-    if (val != null) return val;
+    if (val != null)
+      return val;
     val = tryParseInt(fallback);
     return val == null ? 0 : val;
   }
 
   private String pickString(String preferred, String fallback) {
-    if (preferred != null && !preferred.trim().isEmpty()) return preferred;
+    if (preferred != null && !preferred.trim().isEmpty())
+      return preferred;
     return fallback;
   }
 
   private Time toTime(String hhmm) {
-    if (hhmm == null || hhmm.length() == 0) return null;
+    if (hhmm == null || hhmm.length() == 0)
+      return null;
     return Time.valueOf(hhmm + ":00");
   }
 }

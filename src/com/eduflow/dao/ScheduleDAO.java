@@ -15,15 +15,17 @@ public class ScheduleDAO {
     return hasStudentConflictExcluding(0, deptId, batchId, sectionId, day, start, end);
   }
 
-  public boolean hasStudentConflictExcluding(int excludeScheduleId, int deptId, int batchId, int sectionId, String day, Time start, Time end) {
+  public boolean hasStudentConflictExcluding(int excludeScheduleId, int deptId, int batchId, int sectionId, String day,
+      Time start, Time end) {
     String sql = "SELECT COUNT(*) FROM SCHEDULE " +
-                 "WHERE dept_id=? AND batch_id=? AND section_id=? AND day=? AND status='APPROVED' " +
-                 (excludeScheduleId > 0 ? "AND schedule_id<>? " : "") +
-                 "AND (? < TO_CHAR(time_end,'HH24:MI') AND ? > TO_CHAR(time_start,'HH24:MI'))";
+        "WHERE dept_id=? AND batch_id=? AND section_id=? AND day=? AND status='APPROVED' " +
+        (excludeScheduleId > 0 ? "AND schedule_id<>? " : "") +
+        "AND (? < TO_CHAR(time_end,'HH24:MI') AND ? > TO_CHAR(time_start,'HH24:MI'))";
     if (excludeScheduleId > 0) {
-      return countConflicts(sql, new Object[]{deptId, batchId, sectionId, day, excludeScheduleId, toHHmm(start), toHHmm(end)});
+      return countConflicts(sql,
+          new Object[] { deptId, batchId, sectionId, day, excludeScheduleId, toHHmm(start), toHHmm(end) });
     }
-    return countConflicts(sql, new Object[]{deptId, batchId, sectionId, day, toHHmm(start), toHHmm(end)});
+    return countConflicts(sql, new Object[] { deptId, batchId, sectionId, day, toHHmm(start), toHHmm(end) });
   }
 
   public boolean hasRoomClash(int roomId, String day, Time start, Time end) {
@@ -32,13 +34,13 @@ public class ScheduleDAO {
 
   public boolean hasRoomClashExcluding(int excludeScheduleId, int roomId, String day, Time start, Time end) {
     String sql = "SELECT COUNT(*) FROM SCHEDULE " +
-                 "WHERE room_id=? AND day=? AND status='APPROVED' " +
-                 (excludeScheduleId > 0 ? "AND schedule_id<>? " : "") +
-                 "AND (? < TO_CHAR(time_end,'HH24:MI') AND ? > TO_CHAR(time_start,'HH24:MI'))";
+        "WHERE room_id=? AND day=? AND status='APPROVED' " +
+        (excludeScheduleId > 0 ? "AND schedule_id<>? " : "") +
+        "AND (? < TO_CHAR(time_end,'HH24:MI') AND ? > TO_CHAR(time_start,'HH24:MI'))";
     if (excludeScheduleId > 0) {
-      return countConflicts(sql, new Object[]{roomId, day, excludeScheduleId, toHHmm(start), toHHmm(end)});
+      return countConflicts(sql, new Object[] { roomId, day, excludeScheduleId, toHHmm(start), toHHmm(end) });
     }
-    return countConflicts(sql, new Object[]{roomId, day, toHHmm(start), toHHmm(end)});
+    return countConflicts(sql, new Object[] { roomId, day, toHHmm(start), toHHmm(end) });
   }
 
   public boolean isTeacherAvailable(int teacherId, String day, Time start, Time end) {
@@ -47,18 +49,18 @@ public class ScheduleDAO {
 
   public boolean isTeacherAvailableExcluding(int excludeScheduleId, int teacherId, String day, Time start, Time end) {
     String sql = "SELECT COUNT(*) FROM SCHEDULE " +
-                 "WHERE teacher_id=? AND day=? AND status='APPROVED' " +
-                 (excludeScheduleId > 0 ? "AND schedule_id<>? " : "") +
-                 "AND (? < TO_CHAR(time_end,'HH24:MI') AND ? > TO_CHAR(time_start,'HH24:MI'))";
+        "WHERE teacher_id=? AND day=? AND status='APPROVED' " +
+        (excludeScheduleId > 0 ? "AND schedule_id<>? " : "") +
+        "AND (? < TO_CHAR(time_end,'HH24:MI') AND ? > TO_CHAR(time_start,'HH24:MI'))";
     if (excludeScheduleId > 0) {
-      return !countConflicts(sql, new Object[]{teacherId, day, excludeScheduleId, toHHmm(start), toHHmm(end)});
+      return !countConflicts(sql, new Object[] { teacherId, day, excludeScheduleId, toHHmm(start), toHHmm(end) });
     }
-    return !countConflicts(sql, new Object[]{teacherId, day, toHHmm(start), toHHmm(end)});
+    return !countConflicts(sql, new Object[] { teacherId, day, toHHmm(start), toHHmm(end) });
   }
 
   private boolean countConflicts(String sql, Object[] params) {
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       for (int i = 0; i < params.length; i++) {
         ps.setObject(i + 1, params[i]);
       }
@@ -74,12 +76,12 @@ public class ScheduleDAO {
   }
 
   public boolean insertApprovedSchedule(int deptId, int batchId, int sectionId, int subjectId,
-                                        int teacherId, int roomId, String day, Time start, Time end) {
+      int teacherId, int roomId, String day, Time start, Time end) {
     String sql = "INSERT INTO SCHEDULE " +
-                 "(dept_id, batch_id, section_id, subject_id, teacher_id, room_id, day, time_start, time_end, status) " +
-                 "VALUES (?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'HH24:MI'), TO_DATE(?, 'HH24:MI'), 'APPROVED')";
+        "(dept_id, batch_id, section_id, subject_id, teacher_id, room_id, day, time_start, time_end, status) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, TO_DATE(?, 'HH24:MI'), TO_DATE(?, 'HH24:MI'), 'APPROVED')";
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, deptId);
       ps.setInt(2, batchId);
       ps.setInt(3, sectionId);
@@ -96,12 +98,12 @@ public class ScheduleDAO {
   }
 
   public boolean updateApprovedSchedule(int scheduleId, int deptId, int batchId, int sectionId, int subjectId,
-                                        int teacherId, int roomId, String day, Time start, Time end) {
+      int teacherId, int roomId, String day, Time start, Time end) {
     String sql = "UPDATE SCHEDULE SET dept_id=?, batch_id=?, section_id=?, subject_id=?, teacher_id=?, room_id=?, " +
-                 "day=?, time_start=TO_DATE(?, 'HH24:MI'), time_end=TO_DATE(?, 'HH24:MI'), " +
-                 "status='APPROVED', last_updated=SYSTIMESTAMP WHERE schedule_id=?";
+        "day=?, time_start=TO_DATE(?, 'HH24:MI'), time_end=TO_DATE(?, 'HH24:MI'), " +
+        "status='APPROVED', last_updated=SYSTIMESTAMP WHERE schedule_id=?";
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, deptId);
       ps.setInt(2, batchId);
       ps.setInt(3, sectionId);
@@ -119,7 +121,8 @@ public class ScheduleDAO {
   }
 
   private String toHHmm(Time time) {
-    if (time == null) return null;
+    if (time == null)
+      return null;
     String val = time.toString(); // HH:MM:SS
     return val.length() >= 5 ? val.substring(0, 5) : val;
   }
@@ -154,7 +157,8 @@ public class ScheduleDAO {
 
   public boolean isScheduleOwnedByTeacher(int scheduleId, int teacherId) {
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM SCHEDULE WHERE schedule_id=? AND teacher_id=?")) {
+        PreparedStatement ps = conn
+            .prepareStatement("SELECT COUNT(*) FROM SCHEDULE WHERE schedule_id=? AND teacher_id=?")) {
       ps.setInt(1, scheduleId);
       ps.setInt(2, teacherId);
       try (ResultSet rs = ps.executeQuery()) {
@@ -167,7 +171,7 @@ public class ScheduleDAO {
 
   private boolean existsById(String sql, int id) {
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, id);
       try (ResultSet rs = ps.executeQuery()) {
         return rs.next() && rs.getInt(1) > 0;
@@ -179,18 +183,18 @@ public class ScheduleDAO {
 
   public List<ScheduleView> getApprovedScheduleForStudent(int deptId, int batchId, int sectionId) {
     String sql = "SELECT s.day, TO_CHAR(s.time_start, 'HH24:MI') AS time_start, " +
-                 "TO_CHAR(s.time_end, 'HH24:MI') AS time_end, sub.name AS subject_name, " +
-                 "u.name AS teacher_name, c.room_name, s.status " +
-                 "FROM SCHEDULE s " +
-                 "JOIN SUBJECTS sub ON s.subject_id = sub.subject_id " +
-                 "JOIN TEACHERS t ON s.teacher_id = t.teacher_id " +
-                 "JOIN USERS u ON t.user_id = u.user_id " +
-                 "JOIN CLASSROOMS c ON s.room_id = c.room_id " +
-                 "WHERE s.dept_id=? AND s.batch_id=? AND s.section_id=? AND s.status='APPROVED' " +
-                 "ORDER BY s.day, s.time_start";
+        "TO_CHAR(s.time_end, 'HH24:MI') AS time_end, sub.name AS subject_name, " +
+        "u.name AS teacher_name, c.room_name, s.status " +
+        "FROM SCHEDULE s " +
+        "JOIN SUBJECTS sub ON s.subject_id = sub.subject_id " +
+        "JOIN TEACHERS t ON s.teacher_id = t.teacher_id " +
+        "JOIN USERS u ON t.user_id = u.user_id " +
+        "JOIN CLASSROOMS c ON s.room_id = c.room_id " +
+        "WHERE s.dept_id=? AND s.batch_id=? AND s.section_id=? AND s.status='APPROVED' " +
+        "ORDER BY s.day, s.time_start";
     List<ScheduleView> list = new ArrayList<>();
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, deptId);
       ps.setInt(2, batchId);
       ps.setInt(3, sectionId);
@@ -215,19 +219,19 @@ public class ScheduleDAO {
 
   public List<ScheduleView> getTeacherAssignments(int teacherId) {
     String sql = "SELECT s.schedule_id, s.dept_id, s.batch_id, s.section_id, s.subject_id, s.teacher_id, s.room_id, " +
-                 "s.day, TO_CHAR(s.time_start, 'HH24:MI') AS time_start, " +
-                 "TO_CHAR(s.time_end, 'HH24:MI') AS time_end, sub.subject_code, sub.name AS subject_name, " +
-                 "sec.section_name, c.room_name, s.status, d.dept_name " +
-                 "FROM SCHEDULE s " +
-                 "JOIN SUBJECTS sub ON s.subject_id = sub.subject_id " +
-                 "JOIN SECTIONS sec ON s.section_id = sec.section_id " +
-                 "JOIN CLASSROOMS c ON s.room_id = c.room_id " +
-                 "JOIN DEPARTMENTS d ON s.dept_id = d.dept_id " +
-                 "WHERE s.teacher_id=? AND s.status='APPROVED' " +
-                 "ORDER BY s.day, s.time_start";
+        "s.day, TO_CHAR(s.time_start, 'HH24:MI') AS time_start, " +
+        "TO_CHAR(s.time_end, 'HH24:MI') AS time_end, sub.subject_code, sub.name AS subject_name, " +
+        "sec.section_name, c.room_name, s.status, d.dept_name " +
+        "FROM SCHEDULE s " +
+        "JOIN SUBJECTS sub ON s.subject_id = sub.subject_id " +
+        "JOIN SECTIONS sec ON s.section_id = sec.section_id " +
+        "JOIN CLASSROOMS c ON s.room_id = c.room_id " +
+        "JOIN DEPARTMENTS d ON s.dept_id = d.dept_id " +
+        "WHERE s.teacher_id=? AND s.status='APPROVED' " +
+        "ORDER BY s.day, s.time_start";
     List<ScheduleView> list = new ArrayList<>();
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setInt(1, teacherId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -259,23 +263,23 @@ public class ScheduleDAO {
 
   public List<ScheduleView> getApprovedSchedulesForAdmin() {
     String sql = "SELECT s.schedule_id, s.dept_id, s.batch_id, s.section_id, s.subject_id, s.teacher_id, s.room_id, " +
-                 "s.day, TO_CHAR(s.time_start, 'HH24:MI') AS time_start, TO_CHAR(s.time_end, 'HH24:MI') AS time_end, " +
-                 "d.dept_name, b.year AS batch_year, sec.section_name, sub.subject_code, sub.name AS subject_name, " +
-                 "u.name AS teacher_name, c.room_name " +
-                 "FROM SCHEDULE s " +
-                 "JOIN DEPARTMENTS d ON s.dept_id = d.dept_id " +
-                 "JOIN BATCHES b ON s.batch_id = b.batch_id " +
-                 "JOIN SECTIONS sec ON s.section_id = sec.section_id " +
-                 "JOIN SUBJECTS sub ON s.subject_id = sub.subject_id " +
-                 "JOIN TEACHERS t ON s.teacher_id = t.teacher_id " +
-                 "JOIN USERS u ON t.user_id = u.user_id " +
-                 "JOIN CLASSROOMS c ON s.room_id = c.room_id " +
-                 "WHERE s.status='APPROVED' " +
-                 "ORDER BY s.day, s.time_start, d.dept_name, b.year, sec.section_name";
+        "s.day, TO_CHAR(s.time_start, 'HH24:MI') AS time_start, TO_CHAR(s.time_end, 'HH24:MI') AS time_end, " +
+        "d.dept_name, b.year AS batch_year, sec.section_name, sub.subject_code, sub.name AS subject_name, " +
+        "u.name AS teacher_name, c.room_name " +
+        "FROM SCHEDULE s " +
+        "JOIN DEPARTMENTS d ON s.dept_id = d.dept_id " +
+        "JOIN BATCHES b ON s.batch_id = b.batch_id " +
+        "JOIN SECTIONS sec ON s.section_id = sec.section_id " +
+        "JOIN SUBJECTS sub ON s.subject_id = sub.subject_id " +
+        "JOIN TEACHERS t ON s.teacher_id = t.teacher_id " +
+        "JOIN USERS u ON t.user_id = u.user_id " +
+        "JOIN CLASSROOMS c ON s.room_id = c.room_id " +
+        "WHERE s.status='APPROVED' " +
+        "ORDER BY s.day, s.time_start, d.dept_name, b.year, sec.section_name";
     List<ScheduleView> list = new ArrayList<>();
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
         ScheduleView v = new ScheduleView();
         v.setScheduleId(rs.getInt("schedule_id"));

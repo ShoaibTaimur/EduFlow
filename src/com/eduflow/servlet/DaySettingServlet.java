@@ -20,14 +20,16 @@ public class DaySettingServlet extends BaseServlet {
 
     resp.setContentType("application/json");
     resp.setCharacterEncoding("UTF-8");
-    String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+    String[] days = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
     StringBuilder sb = new StringBuilder();
     sb.append("{\"items\":[");
     for (int i = 0; i < days.length; i++) {
-      if (i > 0) sb.append(",");
+      if (i > 0)
+        sb.append(",");
       String day = days[i];
       String type = map.get(day);
-      if (type == null) type = "WORKING";
+      if (type == null)
+        type = "WORKING";
       sb.append("{\"day\":\"").append(day).append("\",\"type\":\"").append(type).append("\"}");
     }
     sb.append("]}");
@@ -52,7 +54,8 @@ public class DaySettingServlet extends BaseServlet {
     dao.upsertDaySetting(day, type, adminId);
     if ("WEEKEND".equalsIgnoreCase(type) || "HOLIDAY".equalsIgnoreCase(type)) {
       int deleted = dao.deleteApprovedSchedulesByDay(day);
-      resp.sendRedirect(req.getContextPath() + "/admin/approval?msg=Day+setting+saved.+Deleted+" + deleted + "+approved+class(es)+for+" + day);
+      resp.sendRedirect(req.getContextPath() + "/admin/approval?msg=Day+setting+saved.+Deleted+" + deleted
+          + "+approved+class(es)+for+" + day);
       return;
     }
     resp.sendRedirect(req.getContextPath() + "/admin/approval?msg=Day+setting+saved");

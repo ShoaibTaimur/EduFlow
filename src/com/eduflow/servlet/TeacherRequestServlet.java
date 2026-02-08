@@ -45,10 +45,12 @@ public class TeacherRequestServlet extends BaseServlet {
 
     List<LookupOption> departments = lookupDAO.getDepartments();
     int deptId = parseInt(req.getParameter("deptId"));
-    if (deptId <= 0 && !departments.isEmpty()) deptId = departments.get(0).getId();
+    if (deptId <= 0 && !departments.isEmpty())
+      deptId = departments.get(0).getId();
     List<LookupOption> batches = deptId > 0 ? lookupDAO.getBatchesByDept(deptId) : Collections.emptyList();
     int batchId = parseInt(req.getParameter("batchId"));
-    if (batchId <= 0 && !batches.isEmpty()) batchId = batches.get(0).getId();
+    if (batchId <= 0 && !batches.isEmpty())
+      batchId = batches.get(0).getId();
     List<LookupOption> sections = batchId > 0 ? lookupDAO.getSectionsByBatch(batchId) : Collections.emptyList();
     List<LookupOption> subjects = deptId > 0 ? lookupDAO.getSubjectsByDept(deptId) : Collections.emptyList();
     List<LookupOption> rooms = lookupDAO.getRooms();
@@ -60,7 +62,8 @@ public class TeacherRequestServlet extends BaseServlet {
     req.setAttribute("rooms", rooms);
     req.setAttribute("selectedDeptId", deptId);
     req.setAttribute("selectedBatchId", batchId);
-    req.setAttribute("days", Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"));
+    req.setAttribute("days",
+        Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"));
     if (req.getAttribute("message") == null && req.getParameter("msg") != null) {
       req.setAttribute("message", req.getParameter("msg"));
     }
@@ -105,7 +108,8 @@ public class TeacherRequestServlet extends BaseServlet {
     String day = req.getParameter("day");
     Time start = toTime(req.getParameter("timeStart"));
     Time end = toTime(req.getParameter("timeEnd"));
-    if (deptId <= 0 || batchId <= 0 || sectionId <= 0 || subjectId <= 0 || roomId <= 0 || start == null || end == null) {
+    if (deptId <= 0 || batchId <= 0 || sectionId <= 0 || subjectId <= 0 || roomId <= 0 || start == null
+        || end == null) {
       req.setAttribute("error", "Please select all required values.");
       doGet(req, resp);
       return;
@@ -129,14 +133,14 @@ public class TeacherRequestServlet extends BaseServlet {
       return;
     }
     boolean studentConflict = scheduleId > 0
-      ? scheduleDAO.hasStudentConflictExcluding(scheduleId, deptId, batchId, sectionId, day, start, end)
-      : scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end);
+        ? scheduleDAO.hasStudentConflictExcluding(scheduleId, deptId, batchId, sectionId, day, start, end)
+        : scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end);
     boolean roomClash = scheduleId > 0
-      ? scheduleDAO.hasRoomClashExcluding(scheduleId, roomId, day, start, end)
-      : scheduleDAO.hasRoomClash(roomId, day, start, end);
+        ? scheduleDAO.hasRoomClashExcluding(scheduleId, roomId, day, start, end)
+        : scheduleDAO.hasRoomClash(roomId, day, start, end);
     boolean teacherAvailable = scheduleId > 0
-      ? scheduleDAO.isTeacherAvailableExcluding(scheduleId, teacherId, day, start, end)
-      : scheduleDAO.isTeacherAvailable(teacherId, day, start, end);
+        ? scheduleDAO.isTeacherAvailableExcluding(scheduleId, teacherId, day, start, end)
+        : scheduleDAO.isTeacherAvailable(teacherId, day, start, end);
 
     if (studentConflict || roomClash || !teacherAvailable) {
       req.setAttribute("error", "Schedule conflict detected. Please adjust time/room.");
@@ -148,15 +152,16 @@ public class TeacherRequestServlet extends BaseServlet {
     String subjectCode = lookupDAO.getSubjectCodeById(subjectId);
     String requestType = scheduleId > 0 ? "UPDATE" : "CREATE";
     String proposedData = String.format(
-      "{\"requestType\":\"%s\",\"scheduleId\":%d,\"deptId\":%d,\"batchId\":%d,\"sectionId\":%d,\"subjectId\":%d,\"subjectCode\":\"%s\",\"teacherId\":%d,\"roomId\":%d,\"day\":\"%s\",\"timeStart\":\"%s\",\"timeEnd\":\"%s\"}",
-      requestType, scheduleId, deptId, batchId, sectionId, subjectId, subjectCode, teacherId, roomId, day, req.getParameter("timeStart"), req.getParameter("timeEnd")
-    );
+        "{\"requestType\":\"%s\",\"scheduleId\":%d,\"deptId\":%d,\"batchId\":%d,\"sectionId\":%d,\"subjectId\":%d,\"subjectCode\":\"%s\",\"teacherId\":%d,\"roomId\":%d,\"day\":\"%s\",\"timeStart\":\"%s\",\"timeEnd\":\"%s\"}",
+        requestType, scheduleId, deptId, batchId, sectionId, subjectId, subjectCode, teacherId, roomId, day,
+        req.getParameter("timeStart"), req.getParameter("timeEnd"));
 
     RequestDAO requestDAO = new RequestDAO();
     boolean ok = requestDAO.insertRequest(teacherId, proposedData);
     req.setAttribute("message", ok
-      ? ("UPDATE".equals(requestType) ? "Update request submitted for admin approval" : "Request submitted for admin approval")
-      : "Request failed");
+        ? ("UPDATE".equals(requestType) ? "Update request submitted for admin approval"
+            : "Request submitted for admin approval")
+        : "Request failed");
     doGet(req, resp);
   }
 
@@ -169,7 +174,8 @@ public class TeacherRequestServlet extends BaseServlet {
   }
 
   private Time toTime(String hhmm) {
-    if (hhmm == null || hhmm.length() == 0) return null;
+    if (hhmm == null || hhmm.length() == 0)
+      return null;
     return Time.valueOf(hhmm + ":00");
   }
 }

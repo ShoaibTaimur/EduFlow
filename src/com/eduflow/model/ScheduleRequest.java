@@ -11,24 +11,59 @@ public class ScheduleRequest {
   private Timestamp reviewedAt;
   private Integer adminId;
 
-  public int getRequestId() { return requestId; }
-  public void setRequestId(int requestId) { this.requestId = requestId; }
+  public int getRequestId() {
+    return requestId;
+  }
 
-  public int getTeacherId() { return teacherId; }
-  public void setTeacherId(int teacherId) { this.teacherId = teacherId; }
+  public void setRequestId(int requestId) {
+    this.requestId = requestId;
+  }
 
-  public String getProposedData() { return proposedData; }
-  public void setProposedData(String proposedData) { this.proposedData = proposedData; }
+  public int getTeacherId() {
+    return teacherId;
+  }
 
-  public String getStatus() { return status; }
-  public void setStatus(String status) { this.status = status; }
+  public void setTeacherId(int teacherId) {
+    this.teacherId = teacherId;
+  }
 
-  public Timestamp getSubmittedAt() { return submittedAt; }
-  public void setSubmittedAt(Timestamp submittedAt) { this.submittedAt = submittedAt; }
+  public String getProposedData() {
+    return proposedData;
+  }
 
-  public Timestamp getReviewedAt() { return reviewedAt; }
-  public void setReviewedAt(Timestamp reviewedAt) { this.reviewedAt = reviewedAt; }
+  public void setProposedData(String proposedData) {
+    this.proposedData = proposedData;
+  }
 
-  public Integer getAdminId() { return adminId; }
-  public void setAdminId(Integer adminId) { this.adminId = adminId; }
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public Timestamp getSubmittedAt() {
+    return submittedAt;
+  }
+
+  public void setSubmittedAt(Timestamp submittedAt) {
+    this.submittedAt = submittedAt;
+  }
+
+  public Timestamp getReviewedAt() {
+    return reviewedAt;
+  }
+
+  public void setReviewedAt(Timestamp reviewedAt) {
+    this.reviewedAt = reviewedAt;
+  }
+
+  public Integer getAdminId() {
+    return adminId;
+  }
+
+  public void setAdminId(Integer adminId) {
+    this.adminId = adminId;
+  }
 }

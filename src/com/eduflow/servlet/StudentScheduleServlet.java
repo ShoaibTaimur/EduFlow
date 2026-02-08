@@ -32,16 +32,17 @@ public class StudentScheduleServlet extends BaseServlet {
       sb.append("{\"items\":[");
       for (int i = 0; i < list.size(); i++) {
         ScheduleView v = list.get(i);
-        if (i > 0) sb.append(",");
+        if (i > 0)
+          sb.append(",");
         sb.append("{")
-          .append("\"day\":\"").append(JsonUtil.escape(v.getDay())).append("\",")
-          .append("\"timeStart\":\"").append(JsonUtil.escape(v.getTimeStart())).append("\",")
-          .append("\"timeEnd\":\"").append(JsonUtil.escape(v.getTimeEnd())).append("\",")
-          .append("\"subject\":\"").append(JsonUtil.escape(v.getSubjectName())).append("\",")
-          .append("\"teacher\":\"").append(JsonUtil.escape(v.getTeacherName())).append("\",")
-          .append("\"room\":\"").append(JsonUtil.escape(v.getRoomName())).append("\",")
-          .append("\"status\":\"").append(JsonUtil.escape(v.getStatus())).append("\"")
-          .append("}");
+            .append("\"day\":\"").append(JsonUtil.escape(v.getDay())).append("\",")
+            .append("\"timeStart\":\"").append(JsonUtil.escape(v.getTimeStart())).append("\",")
+            .append("\"timeEnd\":\"").append(JsonUtil.escape(v.getTimeEnd())).append("\",")
+            .append("\"subject\":\"").append(JsonUtil.escape(v.getSubjectName())).append("\",")
+            .append("\"teacher\":\"").append(JsonUtil.escape(v.getTeacherName())).append("\",")
+            .append("\"room\":\"").append(JsonUtil.escape(v.getRoomName())).append("\",")
+            .append("\"status\":\"").append(JsonUtil.escape(v.getStatus())).append("\"")
+            .append("}");
       }
       sb.append("]}");
       resp.getWriter().write(sb.toString());

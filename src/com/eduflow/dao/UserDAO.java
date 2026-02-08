@@ -10,10 +10,10 @@ import java.sql.ResultSet;
 public class UserDAO {
   public User authenticate(String email, String password) {
     String sql = "SELECT u.user_id, u.name, u.email, u.role_id, r.role_name " +
-                 "FROM USERS u JOIN ROLES r ON u.role_id = r.role_id " +
-                 "WHERE u.email = ? AND u.password = ?";
+        "FROM USERS u JOIN ROLES r ON u.role_id = r.role_id " +
+        "WHERE u.email = ? AND u.password = ?";
     try (Connection conn = DBUtil.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, email);
       ps.setString(2, password);
       try (ResultSet rs = ps.executeQuery()) {

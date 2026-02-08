@@ -13,7 +13,8 @@ import java.io.IOException;
 
 public class SessionFilter implements Filter {
   @Override
-  public void init(FilterConfig filterConfig) { }
+  public void init(FilterConfig filterConfig) {
+  }
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -51,5 +52,6 @@ public class SessionFilter implements Filter {
   }
 
   @Override
-  public void destroy() { }
+  public void destroy() {
+  }
 }

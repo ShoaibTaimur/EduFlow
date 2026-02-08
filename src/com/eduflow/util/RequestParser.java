@@ -6,17 +6,20 @@ import java.util.Map;
 public class RequestParser {
   public static Map<String, String> parseSimpleJson(String json) {
     Map<String, String> map = new HashMap<>();
-    if (json == null) return map;
+    if (json == null)
+      return map;
     String s = json.trim();
     if (s.startsWith("{") && s.endsWith("}")) {
       s = s.substring(1, s.length() - 1);
     }
-    if (s.trim().isEmpty()) return map;
+    if (s.trim().isEmpty())
+      return map;
 
     String[] parts = s.split(",");
     for (String part : parts) {
       String[] kv = part.split(":", 2);
-      if (kv.length != 2) continue;
+      if (kv.length != 2)
+        continue;
       String key = strip(kv[0]);
       String val = strip(kv[1]);
       map.put(key, val);
