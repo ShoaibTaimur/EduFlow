@@ -4,8 +4,10 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="com.eduflow.model.LookupOption" %>
 <%@ page import="com.eduflow.model.ScheduleRequest" %>
+<%@ page import="com.eduflow.model.ScheduleView" %>
 <%
   List<ScheduleRequest> pending = (List<ScheduleRequest>) request.getAttribute("pending");
+  List<ScheduleView> approvedSchedules = (List<ScheduleView>) request.getAttribute("approvedSchedules");
   List<LookupOption> departments = (List<LookupOption>) request.getAttribute("departments");
   List<LookupOption> batches = (List<LookupOption>) request.getAttribute("batches");
   List<LookupOption> sections = (List<LookupOption>) request.getAttribute("sections");
@@ -77,6 +79,8 @@
             <div class="text-xs text-slate-500 mb-3">Proposed: <span class="proposal-summary"></span></div>
             <form action="<%= request.getContextPath() %>/admin/approval" method="post" class="space-y-2 admin-form" data-proposed="<%= proposedEsc %>">
               <input type="hidden" name="requestId" value="<%= r.getRequestId() %>" />
+              <input type="hidden" name="requestType" class="request-type-input" />
+              <input type="hidden" name="scheduleId" class="schedule-id-input" />
               <div class="flex flex-wrap gap-2">
                 <button name="action" value="approve" class="rounded-lg bg-emerald-500 text-slate-900 font-semibold py-2 px-4">Approve</button>
                 <button name="action" value="reject" class="rounded-lg bg-rose-500 text-slate-900 font-semibold py-2 px-4">Reject</button>
@@ -128,6 +132,88 @@
       </div>
     </div>
 
+    <div class="mt-6 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+      <h2 class="font-semibold mb-3">Edit Existing Schedules (Admin Direct)</h2>
+      <div class="overflow-auto">
+        <table class="min-w-full text-sm">
+          <thead class="text-slate-400">
+            <tr>
+              <th class="text-left py-2">Class ID</th>
+              <th class="text-left py-2">Current</th>
+              <th class="text-left py-2">Edit</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            <% if (approvedSchedules != null && !approvedSchedules.isEmpty()) {
+                 for (ScheduleView s : approvedSchedules) { %>
+              <tr>
+                <td class="py-2 align-top"><%= s.getScheduleId() %></td>
+                <td class="py-2 align-top text-slate-300">
+                  <div><%= s.getDeptName() %> · Sec <%= s.getSectionName() %></div>
+                  <div><%= s.getDay() %> <%= s.getTimeStart() %>-<%= s.getTimeEnd() %></div>
+                  <div><%= s.getSubjectCode() %> - <%= s.getSubjectName() %> · <%= s.getTeacherName() %> · <%= s.getRoomName() %></div>
+                </td>
+                <td class="py-2">
+                  <form action="<%= request.getContextPath() %>/admin/approval" method="post" class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <input type="hidden" name="action" value="updateExisting" />
+                    <input type="hidden" name="scheduleId" value="<%= s.getScheduleId() %>" />
+                    <select name="deptId" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% if (departments != null) { for (LookupOption o : departments) { %>
+                        <option value="<%= o.getId() %>" <%= s.getDeptId() == o.getId() ? "selected" : "" %>><%= o.getLabel() %></option>
+                      <% } } %>
+                    </select>
+                    <select name="batchId" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% if (batches != null) { for (LookupOption o : batches) { %>
+                        <option value="<%= o.getId() %>" <%= s.getBatchId() == o.getId() ? "selected" : "" %>><%= o.getLabel() %></option>
+                      <% } } %>
+                    </select>
+                    <select name="sectionId" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% if (sections != null) { for (LookupOption o : sections) { %>
+                        <option value="<%= o.getId() %>" <%= s.getSectionId() == o.getId() ? "selected" : "" %>><%= o.getLabel() %></option>
+                      <% } } %>
+                    </select>
+                    <select name="subjectId" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% if (subjects != null) { for (LookupOption o : subjects) { %>
+                        <option value="<%= o.getId() %>" <%= s.getSubjectId() == o.getId() ? "selected" : "" %>><%= o.getLabel() %></option>
+                      <% } } %>
+                    </select>
+                    <select name="teacherId" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% if (teachers != null) { for (LookupOption o : teachers) { %>
+                        <option value="<%= o.getId() %>" <%= s.getTeacherId() == o.getId() ? "selected" : "" %>><%= o.getLabel() %></option>
+                      <% } } %>
+                    </select>
+                    <select name="roomId" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% if (rooms != null) { for (LookupOption o : rooms) { %>
+                        <option value="<%= o.getId() %>" <%= s.getRoomId() == o.getId() ? "selected" : "" %>><%= o.getLabel() %></option>
+                      <% } } %>
+                    </select>
+                    <select name="day" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% if (days != null) { for (String d : days) { %>
+                        <option value="<%= d %>" <%= d.equals(s.getDay()) ? "selected" : "" %>><%= d %></option>
+                      <% } } %>
+                    </select>
+                    <select name="timeStart" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% for (String t : timeSlots) { %>
+                        <option value="<%= t %>" <%= t.equals(s.getTimeStart()) ? "selected" : "" %>><%= t %></option>
+                      <% } %>
+                    </select>
+                    <select name="timeEnd" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required>
+                      <% for (String t : timeSlots) { %>
+                        <option value="<%= t %>" <%= t.equals(s.getTimeEnd()) ? "selected" : "" %>><%= t %></option>
+                      <% } %>
+                    </select>
+                    <button class="rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold py-2 px-3">Save Changes</button>
+                  </form>
+                </td>
+              </tr>
+            <% } } else { %>
+              <tr><td class="py-3 text-slate-400" colspan="3">No approved schedules found.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
         <h2 class="font-semibold mb-3">Announcements</h2>
@@ -170,9 +256,16 @@
     let data = {};
     try { data = JSON.parse(dataAttr); } catch (e) {}
     const summary = form.parentElement.querySelector('.proposal-summary');
+    const requestType = (data.requestType || 'CREATE').toUpperCase();
+    const scheduleId = data.scheduleId || '';
     if (summary) {
-      summary.textContent = `${data.day || ''} ${data.timeStart || ''}-${data.timeEnd || ''} · Dept ${data.deptId || ''} · Batch ${data.batchId || ''} · Sec ${data.sectionId || ''} · Sub ${data.subjectCode || data.subjectId || ''} · Room ${data.roomId || ''}`;
+      const target = requestType === 'UPDATE' ? ` · Class #${scheduleId || '?'}` : '';
+      summary.textContent = `${requestType}${target} · ${data.day || ''} ${data.timeStart || ''}-${data.timeEnd || ''} · Dept ${data.deptId || ''} · Batch ${data.batchId || ''} · Sec ${data.sectionId || ''} · Sub ${data.subjectCode || data.subjectId || ''} · Room ${data.roomId || ''}`;
     }
+    const requestTypeInput = form.querySelector('.request-type-input');
+    if (requestTypeInput) requestTypeInput.value = requestType;
+    const scheduleIdInput = form.querySelector('.schedule-id-input');
+    if (scheduleIdInput) scheduleIdInput.value = scheduleId;
     const edit = form.querySelector('.edit-fields');
     form.querySelectorAll('select[name=deptId]').forEach(i => i.value = data.deptId || '');
     form.querySelectorAll('select[name=batchId]').forEach(i => i.value = data.batchId || '');

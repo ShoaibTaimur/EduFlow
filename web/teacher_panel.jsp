@@ -49,6 +49,7 @@
           <table class="min-w-full text-sm">
             <thead class="text-slate-400">
               <tr>
+                <th class="text-left py-2">Class ID</th>
                 <th class="text-left py-2">Day</th>
                 <th class="text-left py-2">Time</th>
                 <th class="text-left py-2">Subject</th>
@@ -59,13 +60,14 @@
               <% if (assignments != null) {
                    for (ScheduleView a : assignments) { %>
                 <tr>
+                  <td class="py-2"><%= a.getScheduleId() %></td>
                   <td class="py-2"><%= a.getDay() %></td>
                   <td class="py-2"><%= a.getTimeStart() %> - <%= a.getTimeEnd() %></td>
                   <td class="py-2"><%= a.getSubjectName() %></td>
                   <td class="py-2"><%= a.getRoomName() %></td>
                 </tr>
               <% } } else { %>
-                <tr><td class="py-3 text-slate-400" colspan="4">No assignments found</td></tr>
+                <tr><td class="py-3 text-slate-400" colspan="5">No assignments found</td></tr>
               <% } %>
             </tbody>
           </table>
@@ -75,6 +77,22 @@
       <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
         <h2 class="font-semibold mb-3">Submit Reschedule</h2>
         <form action="<%= request.getContextPath() %>/teacher/request" method="post" class="space-y-3">
+          <select name="scheduleId" class="w-full bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2">
+            <option value="">Create New Class (no existing class selected)</option>
+            <% if (assignments != null) { for (ScheduleView a : assignments) { %>
+              <option value="<%= a.getScheduleId() %>"
+                      data-dept-id="<%= a.getDeptId() %>"
+                      data-batch-id="<%= a.getBatchId() %>"
+                      data-section-id="<%= a.getSectionId() %>"
+                      data-subject-id="<%= a.getSubjectId() %>"
+                      data-room-id="<%= a.getRoomId() %>"
+                      data-day="<%= a.getDay() %>"
+                      data-time-start="<%= a.getTimeStart() %>"
+                      data-time-end="<%= a.getTimeEnd() %>">
+                Update #<%= a.getScheduleId() %> - <%= a.getDay() %> <%= a.getTimeStart() %>-<%= a.getTimeEnd() %> (<%= a.getSubjectCode() != null ? a.getSubjectCode() : a.getSubjectName() %>)
+              </option>
+            <% } } %>
+          </select>
           <div class="grid grid-cols-2 gap-2">
             <select name="deptId" class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2" required onchange="location.href='<%= request.getContextPath() %>/teacher/request?deptId=' + this.value;">
               <% if (departments != null) { for (LookupOption o : departments) { %>
@@ -136,6 +154,8 @@
             <tr>
               <th class="text-left py-2">Request ID</th>
               <th class="text-left py-2">Status</th>
+              <th class="text-left py-2">Type</th>
+              <th class="text-left py-2">Class ID</th>
               <th class="text-left py-2">Dept</th>
               <th class="text-left py-2">Batch</th>
               <th class="text-left py-2">Section</th>
@@ -154,6 +174,8 @@
               <tr data-proposed="<%= proposedEsc %>">
                 <td class="py-2"><%= r.getRequestId() %></td>
                 <td class="py-2"><%= r.getStatus() %></td>
+                <td class="py-2 cell-type"></td>
+                <td class="py-2 cell-schedule-id"></td>
                 <td class="py-2 cell-dept"></td>
                 <td class="py-2 cell-batch"></td>
                 <td class="py-2 cell-section"></td>
@@ -164,7 +186,7 @@
                 <td class="py-2"><%= r.getSubmittedAt() %></td>
               </tr>
             <% } } else { %>
-              <tr><td class="py-3 text-slate-400" colspan="10">No requests found</td></tr>
+              <tr><td class="py-3 text-slate-400" colspan="12">No requests found</td></tr>
             <% } %>
           </tbody>
         </table>
@@ -208,9 +230,31 @@
   if (serverMessage) showToast('success', serverMessage);
   if (serverError) showToast('error', serverError);
 
+  const scheduleSelect = document.querySelector('select[name="scheduleId"]');
+  if (scheduleSelect) {
+    scheduleSelect.addEventListener('change', () => {
+      const opt = scheduleSelect.options[scheduleSelect.selectedIndex];
+      if (!opt || !opt.value) return;
+      const set = (name, key) => {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el && opt.dataset[key]) el.value = opt.dataset[key];
+      };
+      set('deptId', 'deptId');
+      set('batchId', 'batchId');
+      set('sectionId', 'sectionId');
+      set('subjectId', 'subjectId');
+      set('roomId', 'roomId');
+      set('day', 'day');
+      set('timeStart', 'timeStart');
+      set('timeEnd', 'timeEnd');
+    });
+  }
+
   document.querySelectorAll('#requestRows tr[data-proposed]').forEach(row => {
     try {
       const data = JSON.parse(row.getAttribute('data-proposed'));
+      row.querySelector('.cell-type').textContent = data.requestType || 'CREATE';
+      row.querySelector('.cell-schedule-id').textContent = data.scheduleId || '-';
       row.querySelector('.cell-dept').textContent = data.deptId || '';
       row.querySelector('.cell-batch').textContent = data.batchId || '';
       row.querySelector('.cell-section').textContent = data.sectionId || '';

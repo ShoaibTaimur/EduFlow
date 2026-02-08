@@ -6,6 +6,7 @@ import com.eduflow.dao.ScheduleDAO;
 import com.eduflow.dao.DaySettingDAO;
 import com.eduflow.model.LookupOption;
 import com.eduflow.model.ScheduleRequest;
+import com.eduflow.model.ScheduleView;
 import com.eduflow.util.RequestParser;
 
 import jakarta.servlet.ServletException;
@@ -26,7 +27,9 @@ public class AdminApprovalServlet extends BaseServlet {
       return;
     }
     RequestDAO requestDAO = new RequestDAO();
+    ScheduleDAO scheduleDAO = new ScheduleDAO();
     List<ScheduleRequest> pending = requestDAO.getPendingRequests();
+    List<ScheduleView> approvedSchedules = scheduleDAO.getApprovedSchedulesForAdmin();
     LookupDAO lookupDAO = new LookupDAO();
     lookupDAO.ensureDemoAcademicData();
     List<LookupOption> departments = lookupDAO.getDepartments();
@@ -38,6 +41,7 @@ public class AdminApprovalServlet extends BaseServlet {
     List<LookupOption> rooms = lookupDAO.getRooms();
     List<LookupOption> teachers = lookupDAO.getTeachers();
     req.setAttribute("pending", pending);
+    req.setAttribute("approvedSchedules", approvedSchedules);
     req.setAttribute("departments", departments);
     req.setAttribute("batches", batches);
     req.setAttribute("sections", sections);
@@ -88,6 +92,9 @@ public class AdminApprovalServlet extends BaseServlet {
       int sectionId = pickInt(req.getParameter("sectionId"), data.get("sectionId"));
       int teacherId = pickInt(req.getParameter("teacherId"), data.get("teacherId"));
       int roomId = pickInt(req.getParameter("roomId"), data.get("roomId"));
+      int scheduleId = pickInt(req.getParameter("scheduleId"), data.get("scheduleId"));
+      String requestType = pickString(req.getParameter("requestType"), data.get("requestType"));
+      boolean isUpdateRequest = "UPDATE".equalsIgnoreCase(requestType) && scheduleId > 0;
 
       Integer subjectId = tryParseInt(req.getParameter("subjectId"));
       if (subjectId == null) {
@@ -136,38 +143,101 @@ public class AdminApprovalServlet extends BaseServlet {
         doGet(req, resp);
         return;
       }
+      if (isUpdateRequest && !scheduleDAO.existsSchedule(scheduleId)) {
+        req.setAttribute("error", "Schedule to update was not found. It may have been deleted.");
+        doGet(req, resp);
+        return;
+      }
       if (daySettingDAO.isNonWorkingDay(day)) {
         req.setAttribute("error", day + " is marked as weekend/holiday. Cannot approve this slot.");
         doGet(req, resp);
         return;
       }
-      if (scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end)) {
+      boolean studentConflict = isUpdateRequest
+        ? scheduleDAO.hasStudentConflictExcluding(scheduleId, deptId, batchId, sectionId, day, start, end)
+        : scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end);
+      if (studentConflict) {
         req.setAttribute("error", "Student schedule conflict detected for selected day/time.");
         doGet(req, resp);
         return;
       }
-      if (scheduleDAO.hasRoomClash(roomId, day, start, end)) {
+      boolean roomClash = isUpdateRequest
+        ? scheduleDAO.hasRoomClashExcluding(scheduleId, roomId, day, start, end)
+        : scheduleDAO.hasRoomClash(roomId, day, start, end);
+      if (roomClash) {
         req.setAttribute("error", "Room clash detected. The selected room already has a class in that slot.");
         doGet(req, resp);
         return;
       }
-      if (!scheduleDAO.isTeacherAvailable(teacherId, day, start, end)) {
+      boolean teacherAvailable = isUpdateRequest
+        ? scheduleDAO.isTeacherAvailableExcluding(scheduleId, teacherId, day, start, end)
+        : scheduleDAO.isTeacherAvailable(teacherId, day, start, end);
+      if (!teacherAvailable) {
         req.setAttribute("error", "Teacher is already assigned in that slot.");
         doGet(req, resp);
         return;
       }
 
       try {
-        boolean ok = scheduleDAO.insertApprovedSchedule(deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start, end);
+        boolean ok = isUpdateRequest
+          ? scheduleDAO.updateApprovedSchedule(scheduleId, deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start, end)
+          : scheduleDAO.insertApprovedSchedule(deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start, end);
         if (ok) {
           requestDAO.updateStatus(requestId, "APPROVED", adminId);
-          req.setAttribute("message", "Request approved and schedule updated");
+          req.setAttribute("message", isUpdateRequest
+            ? "Update request approved and existing schedule changed"
+            : "Request approved and schedule created");
         } else {
           req.setAttribute("error", "Failed to update schedule");
         }
       } catch (RuntimeException e) {
         req.setAttribute("error", "Approval failed due to database constraints. Verify room/teacher/subject references.");
       }
+    } else if ("updateExisting".equalsIgnoreCase(action)) {
+      int scheduleId = parseInt(req.getParameter("scheduleId"));
+      int deptId = parseInt(req.getParameter("deptId"));
+      int batchId = parseInt(req.getParameter("batchId"));
+      int sectionId = parseInt(req.getParameter("sectionId"));
+      int subjectId = parseInt(req.getParameter("subjectId"));
+      int teacherId = parseInt(req.getParameter("teacherId"));
+      int roomId = parseInt(req.getParameter("roomId"));
+      String day = req.getParameter("day");
+      Time start = toTime(req.getParameter("timeStart"));
+      Time end = toTime(req.getParameter("timeEnd"));
+
+      if (scheduleId <= 0 || deptId <= 0 || batchId <= 0 || sectionId <= 0 || subjectId <= 0
+          || teacherId <= 0 || roomId <= 0 || day == null || day.trim().isEmpty() || start == null || end == null) {
+        req.setAttribute("error", "All schedule fields are required for admin update.");
+        doGet(req, resp);
+        return;
+      }
+      if (!scheduleDAO.existsSchedule(scheduleId)) {
+        req.setAttribute("error", "Schedule not found.");
+        doGet(req, resp);
+        return;
+      }
+      if (daySettingDAO.isNonWorkingDay(day)) {
+        req.setAttribute("error", day + " is marked as weekend/holiday. Cannot set class on this day.");
+        doGet(req, resp);
+        return;
+      }
+      if (scheduleDAO.hasStudentConflictExcluding(scheduleId, deptId, batchId, sectionId, day, start, end)) {
+        req.setAttribute("error", "Student schedule conflict detected.");
+        doGet(req, resp);
+        return;
+      }
+      if (scheduleDAO.hasRoomClashExcluding(scheduleId, roomId, day, start, end)) {
+        req.setAttribute("error", "Room clash detected.");
+        doGet(req, resp);
+        return;
+      }
+      if (!scheduleDAO.isTeacherAvailableExcluding(scheduleId, teacherId, day, start, end)) {
+        req.setAttribute("error", "Teacher is already assigned in that slot.");
+        doGet(req, resp);
+        return;
+      }
+      scheduleDAO.updateApprovedSchedule(scheduleId, deptId, batchId, sectionId, subjectId, teacherId, roomId, day, start, end);
+      req.setAttribute("message", "Existing schedule updated by admin.");
     } else if ("reject".equalsIgnoreCase(action)) {
       requestDAO.updateStatus(requestId, "REJECTED", adminId);
       req.setAttribute("message", "Request rejected");

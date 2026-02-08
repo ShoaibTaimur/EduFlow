@@ -11,14 +11,6 @@
   <title>Admin Data Browser - EduFlow</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body.light { background: #f8fafc; color: #0f172a; }
-    body.light .panel { background: #ffffff; border-color: #e2e8f0; }
-    body.light .muted { color: #64748b; }
-    body.light .table-head { color: #475569; }
-    body.light .row-border { border-color: #e2e8f0; }
-    body.light .btn { background: #e2e8f0; color: #0f172a; }
-  </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100">
   <div class="max-w-6xl mx-auto p-4">
@@ -28,7 +20,6 @@
         <p class="text-slate-400 muted">Read-only view of core tables</p>
       </div>
       <div class="flex items-center gap-2">
-        <button id="themeToggle" class="text-sm px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 btn">Light Mode</button>
         <a href="<%= request.getContextPath() %>/admin/approval" class="text-sm px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 btn">Back</a>
         <a href="<%= request.getContextPath() %>/logout" class="text-sm px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 btn">Logout</a>
       </div>
@@ -64,18 +55,5 @@
       </div>
     <% } } %>
   </div>
-  <script>
-    const themeToggle = document.getElementById('themeToggle');
-    const saved = localStorage.getItem('eduflow_theme') || 'dark';
-    if (saved === 'light') {
-      document.body.classList.add('light');
-      themeToggle.textContent = 'Dark Mode';
-    }
-    themeToggle.addEventListener('click', () => {
-      const isLight = document.body.classList.toggle('light');
-      localStorage.setItem('eduflow_theme', isLight ? 'light' : 'dark');
-      themeToggle.textContent = isLight ? 'Dark Mode' : 'Light Mode';
-    });
-  </script>
 </body>
 </html>

@@ -63,6 +63,17 @@ public class DaySettingDAO {
     return false;
   }
 
+  public int deleteApprovedSchedulesByDay(String dayName) {
+    String sql = "DELETE FROM SCHEDULE WHERE day=? AND status='APPROVED'";
+    try (Connection conn = DBUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, dayName);
+      return ps.executeUpdate();
+    } catch (Exception e) {
+      throw new RuntimeException("Delete schedules by day failed", e);
+    }
+  }
+
   private void ensureTable() {
     String sql = "CREATE TABLE DAY_SETTINGS (" +
                  "day_name VARCHAR2(10) PRIMARY KEY, " +

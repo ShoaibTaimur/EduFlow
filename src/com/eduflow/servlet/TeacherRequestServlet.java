@@ -101,6 +101,7 @@ public class TeacherRequestServlet extends BaseServlet {
     int sectionId = parseInt(req.getParameter("sectionId"));
     int subjectId = parseInt(req.getParameter("subjectId"));
     int roomId = parseInt(req.getParameter("roomId"));
+    int scheduleId = parseInt(req.getParameter("scheduleId"));
     String day = req.getParameter("day");
     Time start = toTime(req.getParameter("timeStart"));
     Time end = toTime(req.getParameter("timeEnd"));
@@ -122,9 +123,20 @@ public class TeacherRequestServlet extends BaseServlet {
       doGet(req, resp);
       return;
     }
-    boolean studentConflict = scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end);
-    boolean roomClash = scheduleDAO.hasRoomClash(roomId, day, start, end);
-    boolean teacherAvailable = scheduleDAO.isTeacherAvailable(teacherId, day, start, end);
+    if (scheduleId > 0 && !scheduleDAO.isScheduleOwnedByTeacher(scheduleId, teacherId)) {
+      req.setAttribute("error", "You can only request updates for your own assigned classes.");
+      doGet(req, resp);
+      return;
+    }
+    boolean studentConflict = scheduleId > 0
+      ? scheduleDAO.hasStudentConflictExcluding(scheduleId, deptId, batchId, sectionId, day, start, end)
+      : scheduleDAO.hasStudentConflict(deptId, batchId, sectionId, day, start, end);
+    boolean roomClash = scheduleId > 0
+      ? scheduleDAO.hasRoomClashExcluding(scheduleId, roomId, day, start, end)
+      : scheduleDAO.hasRoomClash(roomId, day, start, end);
+    boolean teacherAvailable = scheduleId > 0
+      ? scheduleDAO.isTeacherAvailableExcluding(scheduleId, teacherId, day, start, end)
+      : scheduleDAO.isTeacherAvailable(teacherId, day, start, end);
 
     if (studentConflict || roomClash || !teacherAvailable) {
       req.setAttribute("error", "Schedule conflict detected. Please adjust time/room.");
@@ -134,14 +146,17 @@ public class TeacherRequestServlet extends BaseServlet {
 
     LookupDAO lookupDAO = new LookupDAO();
     String subjectCode = lookupDAO.getSubjectCodeById(subjectId);
+    String requestType = scheduleId > 0 ? "UPDATE" : "CREATE";
     String proposedData = String.format(
-      "{\"deptId\":%d,\"batchId\":%d,\"sectionId\":%d,\"subjectId\":%d,\"subjectCode\":\"%s\",\"teacherId\":%d,\"roomId\":%d,\"day\":\"%s\",\"timeStart\":\"%s\",\"timeEnd\":\"%s\"}",
-      deptId, batchId, sectionId, subjectId, subjectCode, teacherId, roomId, day, req.getParameter("timeStart"), req.getParameter("timeEnd")
+      "{\"requestType\":\"%s\",\"scheduleId\":%d,\"deptId\":%d,\"batchId\":%d,\"sectionId\":%d,\"subjectId\":%d,\"subjectCode\":\"%s\",\"teacherId\":%d,\"roomId\":%d,\"day\":\"%s\",\"timeStart\":\"%s\",\"timeEnd\":\"%s\"}",
+      requestType, scheduleId, deptId, batchId, sectionId, subjectId, subjectCode, teacherId, roomId, day, req.getParameter("timeStart"), req.getParameter("timeEnd")
     );
 
     RequestDAO requestDAO = new RequestDAO();
     boolean ok = requestDAO.insertRequest(teacherId, proposedData);
-    req.setAttribute("message", ok ? "Request submitted for admin approval" : "Request failed");
+    req.setAttribute("message", ok
+      ? ("UPDATE".equals(requestType) ? "Update request submitted for admin approval" : "Request submitted for admin approval")
+      : "Request failed");
     doGet(req, resp);
   }
 

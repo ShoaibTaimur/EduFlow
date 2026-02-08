@@ -50,6 +50,11 @@ public class DaySettingServlet extends BaseServlet {
     int adminId = (int) session.getAttribute("user_id");
     DaySettingDAO dao = new DaySettingDAO();
     dao.upsertDaySetting(day, type, adminId);
+    if ("WEEKEND".equalsIgnoreCase(type) || "HOLIDAY".equalsIgnoreCase(type)) {
+      int deleted = dao.deleteApprovedSchedulesByDay(day);
+      resp.sendRedirect(req.getContextPath() + "/admin/approval?msg=Day+setting+saved.+Deleted+" + deleted + "+approved+class(es)+for+" + day);
+      return;
+    }
     resp.sendRedirect(req.getContextPath() + "/admin/approval?msg=Day+setting+saved");
   }
 }
