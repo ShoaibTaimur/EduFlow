@@ -36,6 +36,7 @@
         <p class="text-slate-400">Approve or reject schedule changes</p>
       </div>
       <div class="flex items-center gap-2">
+        <a href="<%= request.getContextPath() %>/admin/data" class="text-sm px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700">Data Browser</a>
         <a href="<%= request.getContextPath() %>/dashboard.jsp" class="text-sm px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700">Dashboard</a>
         <a href="<%= request.getContextPath() %>/logout" class="text-sm px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700">Logout</a>
       </div>

@@ -78,6 +78,15 @@
     <url-pattern>/day-settings</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>DataBrowserServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.DataBrowserServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DataBrowserServlet</servlet-name>
+    <url-pattern>/admin/data</url-pattern>
+  </servlet-mapping>
+
   <welcome-file-list>
     <welcome-file>login.jsp</welcome-file>
   </welcome-file-list>
