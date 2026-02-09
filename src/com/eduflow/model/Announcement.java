@@ -7,12 +7,27 @@ public class Announcement {
   private String message;
   private Timestamp createdAt;
 
-  public int getAnnouncementId() { return announcementId; }
-  public void setAnnouncementId(int announcementId) { this.announcementId = announcementId; }
+  public int getAnnouncementId() {
+    return announcementId;
+  }
 
-  public String getMessage() { return message; }
-  public void setMessage(String message) { this.message = message; }
+  public void setAnnouncementId(int announcementId) {
+    this.announcementId = announcementId;
+  }
 
-  public Timestamp getCreatedAt() { return createdAt; }
-  public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+  public String getMessage() {
+    return message;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
+  }
+
+  public Timestamp getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Timestamp createdAt) {
+    this.createdAt = createdAt;
+  }
 }
