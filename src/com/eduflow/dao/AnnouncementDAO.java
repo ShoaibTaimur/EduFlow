@@ -73,7 +73,6 @@ public class AnnouncementDAO {
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.executeUpdate();
     } catch (SQLException e) {
-      // ORA-01430: column being added already exists in table
       if (e.getErrorCode() != 1430) {
         throw new RuntimeException("Ensure announcement author column failed", e);
       }

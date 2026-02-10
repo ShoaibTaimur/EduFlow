@@ -97,7 +97,6 @@ public class DayPolicyDAO {
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.executeUpdate();
     } catch (SQLException e) {
-      // ORA-00955: name is already used by an existing object
       if (e.getErrorCode() != 955) {
         throw new RuntimeException("Failed creating DAY_SETTINGS table", e);
       }
