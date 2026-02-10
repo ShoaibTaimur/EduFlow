@@ -13,23 +13,22 @@ EduFlow manages academic class routines with controlled workflow:
 
 ## Feature Highlights
 
-- Role-based authentication (`admin`, `teacher`, `student`).
-- Teacher request workflow: create new schedule requests and update requests for existing assigned classes.
-- Admin approval workflow: approve/reject teacher requests, including update requests (`requestType=UPDATE` + `scheduleId`).
-- Admin direct editing for existing approved schedules.
-- Conflict checks on create/update: student conflict, room clash, teacher availability.
-- Day policy management: mark `WORKING`, `WEEKEND`, `HOLIDAY`.
-- Auto cleanup rule: setting a day to `WEEKEND`/`HOLIDAY` deletes approved classes on that day.
-- Announcements: admin and teacher can publish; teacher/student can view live announcements.
-- Admin Data Browser page to inspect table data in UI.
+- Role-based authentication (`admin`, `teacher`, `student`)
+- Teacher request workflow: create new requests and update requests for assigned classes
+- Admin approval workflow: approve/reject and directly edit approved schedules
+- Conflict checks: student overlap, room clash, teacher availability
+- Day policy: `WORKING`, `WEEKEND`, `HOLIDAY`
+- Auto cleanup: setting day to weekend/holiday removes approved classes for that day
+- Announcements: posted by admin/teacher, visible to all roles with sender chip
+- Admin data browser page for table inspection
 
 ## Tech Stack
 
-- Java 17+ (project compiles with source/target 17)
-- JSP + Servlets (Jakarta namespace, Tomcat 10)
+- Java 17+
+- JSP + Jakarta Servlets (Tomcat 10)
 - Oracle XE (Docker)
-- Apache Ant (`build.xml`)
-- Tailwind CSS CDN + Vanilla JavaScript
+- Apache Ant
+- Tailwind CSS CDN + vanilla JavaScript
 
 ## Project Structure
 
@@ -41,10 +40,12 @@ EduFlow/
 │   ├── schema.sql
 │   └── seed.sql
 ├── lib/
-│   └── ojdbc.jar   (you add this manually)
+│   └── ojdbc.jar   (you add manually)
 ├── scripts/
 │   ├── setup.sh
 │   └── setup.ps1
+├── run_eduflow.sh
+├── run_eduflow.ps1
 ├── src/com/eduflow/
 │   ├── dao/
 │   ├── model/
@@ -55,186 +56,127 @@ EduFlow/
     └── WEB-INF/web.xml
 ```
 
-## Prerequisites (All OS)
+## 1) Prerequisites (Install First)
 
-Install these first:
+Install these before running launcher scripts.
 
-- Java 17+ (JDK)
-- Apache Ant
-- Docker (daemon running)
-- Apache Tomcat 10
-- Oracle JDBC jar named exactly: `lib/ojdbc.jar`
+- Git: https://git-scm.com/downloads
+- Java JDK 17+: https://adoptium.net/temurin/releases/
+- Apache Ant: https://ant.apache.org/bindownload.cgi
+- Docker Desktop / Docker Engine: https://www.docker.com/products/docker-desktop/
+- Apache Tomcat 10.x: https://tomcat.apache.org/download-10.cgi
+- Oracle JDBC driver (`ojdbc.jar`): https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html
 
-Important:
+Oracle DB note:
 
-- This project expects `ojdbc.jar` (not `ojdbc17.jar`) in `lib/`.
-- Set `CATALINA_HOME` to your Tomcat 10 directory.
+- You do **not** need to install Oracle manually if using Docker.
+- This project uses image `gvenzl/oracle-xe:21-slim`:
+  https://hub.docker.com/r/gvenzl/oracle-xe
 
-## Start From Zero (Manual)
-
-### 1. Clone
+## 2) Clone and Prepare Project
 
 ```bash
-git clone <YOUR_GITHUB_REPO_URL>
+git clone <YOUR_REPO_URL>
 cd EduFlow
 ```
 
-### 2. Add JDBC Driver
-
-Place Oracle JDBC jar here:
+Place JDBC jar in `lib/` and rename exactly to:
 
 ```text
-EduFlow/lib/ojdbc.jar
+lib/ojdbc.jar
 ```
 
-### 3. Start Oracle XE (Docker)
+## 3) Set `CATALINA_HOME`
 
-If `docker-compose.yml` exists:
+### Linux/macOS
 
 ```bash
-docker compose up -d
+export CATALINA_HOME="$HOME/tomcat"
 ```
 
-Or direct run:
+(Adjust path to your Tomcat folder.)
+
+### Windows PowerShell
+
+```powershell
+setx CATALINA_HOME "C:\path\to\apache-tomcat-10.x.x"
+```
+
+Open a new terminal after `setx`.
+
+## 4) Run One-Command Launcher (Recommended)
+
+### Linux/macOS
 
 ```bash
-docker run -d --name oraclexe \
-  -p 1521:1521 -p 5500:5500 \
-  -e ORACLE_PASSWORD=1234 \
-  gvenzl/oracle-xe:21-slim
+chmod +x run_eduflow.sh
+./run_eduflow.sh
 ```
 
-Check readiness:
+### Windows PowerShell
 
-```bash
-docker logs -f oraclexe
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_eduflow.ps1
 ```
 
-Wait for: `DATABASE IS READY TO USE!`
+What these launchers do:
 
-### 4. Configure DB Connection
+- verify prerequisites (`java`, `ant`, `docker`, etc.)
+- verify/add Tomcat path checks
+- start Oracle XE container (compose or fallback mode)
+- wait for DB readiness using `sqlplus` probe
+- apply `schema.sql` + `seed.sql` only if DB not initialized
+- build WAR with Ant
+- deploy WAR to Tomcat and restart Tomcat
 
-`config.properties`:
-
-```properties
-db.url=jdbc:oracle:thin:@localhost:1521/XEPDB1
-db.user=system
-db.password=1234
-```
-
-### 5. Load Schema + Seed Data
-
-```bash
-docker cp database/schema.sql oraclexe:/tmp/schema.sql
-docker cp database/seed.sql oraclexe:/tmp/seed.sql
-docker exec -it oraclexe bash -lc "sqlplus system/1234@//localhost:1521/XEPDB1 <<'SQL'
-@/tmp/schema.sql
-@/tmp/seed.sql
-COMMIT;
-EXIT;
-SQL"
-```
-
-### 6. Build + Deploy
-
-```bash
-ant clean dist
-cp dist/EduFlow.war "$CATALINA_HOME/webapps/"
-"$CATALINA_HOME/bin/shutdown.sh" || true
-"$CATALINA_HOME/bin/startup.sh"
-```
-
-Open:
+Open app:
 
 ```text
 http://localhost:8080/EduFlow/login.jsp
 ```
 
-## One-Command Setup (Recommended)
-
-If prerequisites are already installed and `CATALINA_HOME` is set, use:
-
-### Linux/macOS
-
-```bash
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-```
-
-### Windows (PowerShell)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
-```
-
-These scripts will:
-
-- start Oracle XE container
-- wait for DB readiness
-- load schema and seed SQL
-- build WAR
-- deploy WAR to Tomcat
-- restart Tomcat
-
-## Demo Accounts
+## 5) Demo Credentials
 
 - Admin: `admin@demo.com` / `admin123`
 - Teacher: `teacher@demo.com` / `teacher123`
 - Student: `student@demo.com` / `student123`
 
-## Daily Re-Run After Restart
+## 6) Optional Controls
 
-When you reopen your laptop:
+Force DB re-initialization (re-apply schema/seed):
 
-1. Start Docker daemon/Desktop.
-2. Start Oracle container:
-   - `docker start oraclexe` (or `docker compose up -d`)
-3. Start Tomcat:
-   - `"$CATALINA_HOME/bin/startup.sh"` (Windows: `startup.bat`)
-4. Open `http://localhost:8080/EduFlow/login.jsp`
-
-If you changed code, redeploy first:
+### Linux/macOS
 
 ```bash
-ant clean dist
-cp dist/EduFlow.war "$CATALINA_HOME/webapps/"
-"$CATALINA_HOME/bin/shutdown.sh" || true
-"$CATALINA_HOME/bin/startup.sh"
+FORCE_DB_INIT=1 ./run_eduflow.sh
 ```
 
-## Conflict Rule
+### Windows PowerShell
 
-```text
-new_start < existing_end AND new_end > existing_start
+```powershell
+$env:FORCE_DB_INIT="1"
+powershell -ExecutionPolicy Bypass -File .\run_eduflow.ps1
 ```
 
-## Troubleshooting
+## 7) Manual Build/Deploy (If Needed)
 
-- `ORA-12541`: Oracle is not running or port `1521` is not available.
-- `ORA-00942`: run schema/seed loading again.
-- Docker permission denied on Linux: run `sudo usermod -aG docker $USER`, then logout/login.
-- Tomcat deployment permission errors: use `sudo` for deploy commands if Tomcat directory is root-owned.
+```bash
+ant clean compile dist
+```
 
-## Can This Be Fully One-Click Across Windows/macOS/Linux?
+Then deploy `dist/EduFlow.war` to Tomcat `webapps/` and restart Tomcat.
 
-Short answer: partially yes, fully automatic install of all missing tools is not reliable/safe in one universal click.
+## 8) Troubleshooting
 
-What is possible now:
-
-- one command setup from this repo using `scripts/setup.sh` or `scripts/setup.ps1`
-- automatic DB start, data load, build, deploy
-
-What is not guaranteed in a single cross-platform click:
-
-- automatic installation of Java/Ant/Docker/Tomcat/Oracle JDBC without admin prompts
-- handling all OS security policies and package manager differences transparently
-
-If you want, a next step can be adding OS-specific bootstrap installers:
-
-- Windows bootstrap `.ps1`
-- macOS bootstrap `.sh` with Homebrew
-- Linux bootstrap `.sh` for apt-based systems
+- `Missing lib/ojdbc.jar`: ensure file exists exactly at `lib/ojdbc.jar`
+- Docker not reachable: start Docker Desktop/daemon
+- `CATALINA_HOME` not set/found: set correct Tomcat path
+- Oracle readiness timeout: inspect container logs
+  - `docker logs oraclexe`
+- Permission error deploying WAR:
+  - Linux script retries with `sudo`
+  - Windows script retries elevated when needed
 
 ## License
 
-This project is licensed under the license defined in this GitHub repository.
+This project is licensed under the license defined in this repository.
