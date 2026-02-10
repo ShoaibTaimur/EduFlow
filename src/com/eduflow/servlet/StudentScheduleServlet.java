@@ -2,7 +2,7 @@ package com.eduflow.servlet;
 
 import com.eduflow.dao.ScheduleDAO;
 import com.eduflow.model.ScheduleView;
-import com.eduflow.util.JsonUtil;
+import com.eduflow.util.WebDataUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,13 +35,13 @@ public class StudentScheduleServlet extends BaseServlet {
         if (i > 0)
           sb.append(",");
         sb.append("{")
-            .append("\"day\":\"").append(JsonUtil.escape(v.getDay())).append("\",")
-            .append("\"timeStart\":\"").append(JsonUtil.escape(v.getTimeStart())).append("\",")
-            .append("\"timeEnd\":\"").append(JsonUtil.escape(v.getTimeEnd())).append("\",")
-            .append("\"subject\":\"").append(JsonUtil.escape(v.getSubjectName())).append("\",")
-            .append("\"teacher\":\"").append(JsonUtil.escape(v.getTeacherName())).append("\",")
-            .append("\"room\":\"").append(JsonUtil.escape(v.getRoomName())).append("\",")
-            .append("\"status\":\"").append(JsonUtil.escape(v.getStatus())).append("\"")
+            .append("\"day\":\"").append(WebDataUtil.escapeJson(v.getDay())).append("\",")
+            .append("\"timeStart\":\"").append(WebDataUtil.escapeJson(v.getTimeStart())).append("\",")
+            .append("\"timeEnd\":\"").append(WebDataUtil.escapeJson(v.getTimeEnd())).append("\",")
+            .append("\"subject\":\"").append(WebDataUtil.escapeJson(v.getSubjectName())).append("\",")
+            .append("\"teacher\":\"").append(WebDataUtil.escapeJson(v.getTeacherName())).append("\",")
+            .append("\"room\":\"").append(WebDataUtil.escapeJson(v.getRoomName())).append("\",")
+            .append("\"status\":\"").append(WebDataUtil.escapeJson(v.getStatus())).append("\"")
             .append("}");
       }
       sb.append("]}");
@@ -50,13 +50,5 @@ public class StudentScheduleServlet extends BaseServlet {
     }
 
     req.getRequestDispatcher("/student_schedule.jsp").forward(req, resp);
-  }
-
-  private int parseIntOrDefault(String value, int defaultVal) {
-    try {
-      return Integer.parseInt(value);
-    } catch (Exception e) {
-      return defaultVal;
-    }
   }
 }

@@ -11,6 +11,49 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScheduleDAO {
+  public static final class ConflictState {
+    private final boolean studentConflict;
+    private final boolean roomClash;
+    private final boolean teacherAvailable;
+
+    public ConflictState(boolean studentConflict, boolean roomClash, boolean teacherAvailable) {
+      this.studentConflict = studentConflict;
+      this.roomClash = roomClash;
+      this.teacherAvailable = teacherAvailable;
+    }
+
+    public boolean hasStudentConflict() {
+      return studentConflict;
+    }
+
+    public boolean hasRoomClash() {
+      return roomClash;
+    }
+
+    public boolean isTeacherAvailable() {
+      return teacherAvailable;
+    }
+
+    public boolean hasAnyConflict() {
+      return studentConflict || roomClash || !teacherAvailable;
+    }
+  }
+
+  public ConflictState evaluateConflicts(int excludeScheduleId, int deptId, int batchId, int sectionId, int teacherId,
+      int roomId, String day, Time start, Time end) {
+    boolean isUpdate = excludeScheduleId > 0;
+    boolean studentConflict = isUpdate
+        ? hasStudentConflictExcluding(excludeScheduleId, deptId, batchId, sectionId, day, start, end)
+        : hasStudentConflict(deptId, batchId, sectionId, day, start, end);
+    boolean roomClash = isUpdate
+        ? hasRoomClashExcluding(excludeScheduleId, roomId, day, start, end)
+        : hasRoomClash(roomId, day, start, end);
+    boolean teacherAvailable = isUpdate
+        ? isTeacherAvailableExcluding(excludeScheduleId, teacherId, day, start, end)
+        : isTeacherAvailable(teacherId, day, start, end);
+    return new ConflictState(studentConflict, roomClash, teacherAvailable);
+  }
+
   public boolean hasStudentConflict(int deptId, int batchId, int sectionId, String day, Time start, Time end) {
     return hasStudentConflictExcluding(0, deptId, batchId, sectionId, day, start, end);
   }
@@ -155,6 +198,16 @@ public class ScheduleDAO {
     return existsById("SELECT COUNT(*) FROM SCHEDULE WHERE schedule_id=?", scheduleId);
   }
 
+  public int deleteAllSchedules() {
+    String sql = "DELETE FROM SCHEDULE";
+    try (Connection conn = DBUtil.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      return ps.executeUpdate();
+    } catch (Exception e) {
+      throw new RuntimeException("Delete schedules failed", e);
+    }
+  }
+
   public boolean isScheduleOwnedByTeacher(int scheduleId, int teacherId) {
     try (Connection conn = DBUtil.getConnection();
         PreparedStatement ps = conn
@@ -200,15 +253,7 @@ public class ScheduleDAO {
       ps.setInt(3, sectionId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          ScheduleView v = new ScheduleView();
-          v.setDay(rs.getString("day"));
-          v.setTimeStart(rs.getString("time_start"));
-          v.setTimeEnd(rs.getString("time_end"));
-          v.setSubjectName(rs.getString("subject_name"));
-          v.setTeacherName(rs.getString("teacher_name"));
-          v.setRoomName(rs.getString("room_name"));
-          v.setStatus(rs.getString("status"));
-          list.add(v);
+          list.add(mapStudentScheduleView(rs));
         }
       }
     } catch (Exception e) {
@@ -235,24 +280,7 @@ public class ScheduleDAO {
       ps.setInt(1, teacherId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          ScheduleView v = new ScheduleView();
-          v.setScheduleId(rs.getInt("schedule_id"));
-          v.setDeptId(rs.getInt("dept_id"));
-          v.setBatchId(rs.getInt("batch_id"));
-          v.setSectionId(rs.getInt("section_id"));
-          v.setSubjectId(rs.getInt("subject_id"));
-          v.setTeacherId(rs.getInt("teacher_id"));
-          v.setRoomId(rs.getInt("room_id"));
-          v.setDay(rs.getString("day"));
-          v.setTimeStart(rs.getString("time_start"));
-          v.setTimeEnd(rs.getString("time_end"));
-          v.setSubjectCode(rs.getString("subject_code"));
-          v.setSectionName(rs.getString("section_name"));
-          v.setSubjectName(rs.getString("subject_name"));
-          v.setRoomName(rs.getString("room_name"));
-          v.setStatus(rs.getString("status"));
-          v.setDeptName(rs.getString("dept_name"));
-          list.add(v);
+          list.add(mapTeacherAssignmentView(rs));
         }
       }
     } catch (Exception e) {
@@ -281,28 +309,65 @@ public class ScheduleDAO {
         PreparedStatement ps = conn.prepareStatement(sql);
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
-        ScheduleView v = new ScheduleView();
-        v.setScheduleId(rs.getInt("schedule_id"));
-        v.setDeptId(rs.getInt("dept_id"));
-        v.setBatchId(rs.getInt("batch_id"));
-        v.setSectionId(rs.getInt("section_id"));
-        v.setSubjectId(rs.getInt("subject_id"));
-        v.setTeacherId(rs.getInt("teacher_id"));
-        v.setRoomId(rs.getInt("room_id"));
-        v.setDay(rs.getString("day"));
-        v.setTimeStart(rs.getString("time_start"));
-        v.setTimeEnd(rs.getString("time_end"));
-        v.setDeptName(rs.getString("dept_name") + " (" + rs.getString("batch_year") + ")");
-        v.setSectionName(rs.getString("section_name"));
-        v.setSubjectCode(rs.getString("subject_code"));
-        v.setSubjectName(rs.getString("subject_name"));
-        v.setTeacherName(rs.getString("teacher_name"));
-        v.setRoomName(rs.getString("room_name"));
-        list.add(v);
+        list.add(mapAdminScheduleView(rs));
       }
     } catch (Exception e) {
       throw new RuntimeException("Fetch admin schedules failed", e);
     }
     return list;
+  }
+
+  private ScheduleView mapStudentScheduleView(ResultSet rs) throws Exception {
+    ScheduleView v = new ScheduleView();
+    v.setDay(rs.getString("day"));
+    v.setTimeStart(rs.getString("time_start"));
+    v.setTimeEnd(rs.getString("time_end"));
+    v.setSubjectName(rs.getString("subject_name"));
+    v.setTeacherName(rs.getString("teacher_name"));
+    v.setRoomName(rs.getString("room_name"));
+    v.setStatus(rs.getString("status"));
+    return v;
+  }
+
+  private ScheduleView mapTeacherAssignmentView(ResultSet rs) throws Exception {
+    ScheduleView v = new ScheduleView();
+    v.setScheduleId(rs.getInt("schedule_id"));
+    v.setDeptId(rs.getInt("dept_id"));
+    v.setBatchId(rs.getInt("batch_id"));
+    v.setSectionId(rs.getInt("section_id"));
+    v.setSubjectId(rs.getInt("subject_id"));
+    v.setTeacherId(rs.getInt("teacher_id"));
+    v.setRoomId(rs.getInt("room_id"));
+    v.setDay(rs.getString("day"));
+    v.setTimeStart(rs.getString("time_start"));
+    v.setTimeEnd(rs.getString("time_end"));
+    v.setSubjectCode(rs.getString("subject_code"));
+    v.setSectionName(rs.getString("section_name"));
+    v.setSubjectName(rs.getString("subject_name"));
+    v.setRoomName(rs.getString("room_name"));
+    v.setStatus(rs.getString("status"));
+    v.setDeptName(rs.getString("dept_name"));
+    return v;
+  }
+
+  private ScheduleView mapAdminScheduleView(ResultSet rs) throws Exception {
+    ScheduleView v = new ScheduleView();
+    v.setScheduleId(rs.getInt("schedule_id"));
+    v.setDeptId(rs.getInt("dept_id"));
+    v.setBatchId(rs.getInt("batch_id"));
+    v.setSectionId(rs.getInt("section_id"));
+    v.setSubjectId(rs.getInt("subject_id"));
+    v.setTeacherId(rs.getInt("teacher_id"));
+    v.setRoomId(rs.getInt("room_id"));
+    v.setDay(rs.getString("day"));
+    v.setTimeStart(rs.getString("time_start"));
+    v.setTimeEnd(rs.getString("time_end"));
+    v.setDeptName(rs.getString("dept_name") + " (" + rs.getString("batch_year") + ")");
+    v.setSectionName(rs.getString("section_name"));
+    v.setSubjectCode(rs.getString("subject_code"));
+    v.setSubjectName(rs.getString("subject_name"));
+    v.setTeacherName(rs.getString("teacher_name"));
+    v.setRoomName(rs.getString("room_name"));
+    return v;
   }
 }

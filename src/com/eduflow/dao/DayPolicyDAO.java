@@ -9,8 +9,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DaySettingDAO {
-  public DaySettingDAO() {
+public class DayPolicyDAO {
+  public DayPolicyDAO() {
     ensureTable();
   }
 
@@ -72,6 +72,16 @@ public class DaySettingDAO {
       return ps.executeUpdate();
     } catch (Exception e) {
       throw new RuntimeException("Delete schedules by day failed", e);
+    }
+  }
+
+  public int clearAllDayPolicies() {
+    String sql = "DELETE FROM DAY_SETTINGS";
+    try (Connection conn = DBUtil.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      return ps.executeUpdate();
+    } catch (Exception e) {
+      throw new RuntimeException("Delete day policies failed", e);
     }
   }
 

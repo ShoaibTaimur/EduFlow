@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RequestDAO {
+public class ScheduleRequestDAO {
   public boolean insertRequest(int teacherId, String proposedData) {
     String sql = "INSERT INTO SCHEDULE_REQUESTS (teacher_id, proposed_data, status) VALUES (?, ?, 'PENDING')";
     try (Connection conn = DBUtil.getConnection();
@@ -42,13 +42,7 @@ public class RequestDAO {
         PreparedStatement ps = conn.prepareStatement(sql);
         ResultSet rs = ps.executeQuery()) {
       while (rs.next()) {
-        ScheduleRequest r = new ScheduleRequest();
-        r.setRequestId(rs.getInt("request_id"));
-        r.setTeacherId(rs.getInt("teacher_id"));
-        r.setProposedData(rs.getString("proposed_data"));
-        r.setStatus(rs.getString("status"));
-        r.setSubmittedAt(rs.getTimestamp("submitted_at"));
-        list.add(r);
+        list.add(mapRequest(rs, false));
       }
     } catch (Exception e) {
       throw new RuntimeException("Fetch requests failed", e);
@@ -65,14 +59,7 @@ public class RequestDAO {
       ps.setInt(1, teacherId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          ScheduleRequest r = new ScheduleRequest();
-          r.setRequestId(rs.getInt("request_id"));
-          r.setTeacherId(rs.getInt("teacher_id"));
-          r.setProposedData(rs.getString("proposed_data"));
-          r.setStatus(rs.getString("status"));
-          r.setSubmittedAt(rs.getTimestamp("submitted_at"));
-          r.setReviewedAt(rs.getTimestamp("reviewed_at"));
-          list.add(r);
+          list.add(mapRequest(rs, true));
         }
       }
     } catch (Exception e) {
@@ -89,14 +76,7 @@ public class RequestDAO {
       ps.setInt(1, requestId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          ScheduleRequest r = new ScheduleRequest();
-          r.setRequestId(rs.getInt("request_id"));
-          r.setTeacherId(rs.getInt("teacher_id"));
-          r.setProposedData(rs.getString("proposed_data"));
-          r.setStatus(rs.getString("status"));
-          r.setSubmittedAt(rs.getTimestamp("submitted_at"));
-          r.setReviewedAt(rs.getTimestamp("reviewed_at"));
-          return r;
+          return mapRequest(rs, true);
         }
       }
     } catch (Exception e) {
@@ -114,5 +94,28 @@ public class RequestDAO {
     } catch (Exception e) {
       throw new RuntimeException("Delete requests failed", e);
     }
+  }
+
+  public int deleteAllRequests() {
+    String sql = "DELETE FROM SCHEDULE_REQUESTS";
+    try (Connection conn = DBUtil.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      return ps.executeUpdate();
+    } catch (Exception e) {
+      throw new RuntimeException("Delete all requests failed", e);
+    }
+  }
+
+  private ScheduleRequest mapRequest(ResultSet rs, boolean includeReviewedAt) throws Exception {
+    ScheduleRequest r = new ScheduleRequest();
+    r.setRequestId(rs.getInt("request_id"));
+    r.setTeacherId(rs.getInt("teacher_id"));
+    r.setProposedData(rs.getString("proposed_data"));
+    r.setStatus(rs.getString("status"));
+    r.setSubmittedAt(rs.getTimestamp("submitted_at"));
+    if (includeReviewedAt) {
+      r.setReviewedAt(rs.getTimestamp("reviewed_at"));
+    }
+    return r;
   }
 }

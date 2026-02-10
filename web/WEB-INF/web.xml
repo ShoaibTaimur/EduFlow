@@ -16,20 +16,15 @@
   </filter-mapping>
 
   <servlet>
-    <servlet-name>LoginServlet</servlet-name>
-    <servlet-class>com.eduflow.servlet.LoginServlet</servlet-class>
+    <servlet-name>AuthServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.AuthServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>LoginServlet</servlet-name>
+    <servlet-name>AuthServlet</servlet-name>
     <url-pattern>/login</url-pattern>
   </servlet-mapping>
-
-  <servlet>
-    <servlet-name>LogoutServlet</servlet-name>
-    <servlet-class>com.eduflow.servlet.LogoutServlet</servlet-class>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>LogoutServlet</servlet-name>
+    <servlet-name>AuthServlet</servlet-name>
     <url-pattern>/logout</url-pattern>
   </servlet-mapping>
 
@@ -43,38 +38,33 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>TeacherRequestServlet</servlet-name>
-    <servlet-class>com.eduflow.servlet.TeacherRequestServlet</servlet-class>
+    <servlet-name>TeacherScheduleRequestServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.TeacherScheduleRequestServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>TeacherRequestServlet</servlet-name>
+    <servlet-name>TeacherScheduleRequestServlet</servlet-name>
     <url-pattern>/teacher/request</url-pattern>
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>AdminApprovalServlet</servlet-name>
-    <servlet-class>com.eduflow.servlet.AdminApprovalServlet</servlet-class>
+    <servlet-name>AdminScheduleApprovalServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.AdminScheduleApprovalServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>AdminApprovalServlet</servlet-name>
+    <servlet-name>AdminScheduleApprovalServlet</servlet-name>
     <url-pattern>/admin/approval</url-pattern>
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>AnnouncementServlet</servlet-name>
-    <servlet-class>com.eduflow.servlet.AnnouncementServlet</servlet-class>
+    <servlet-name>AdminApiServlet</servlet-name>
+    <servlet-class>com.eduflow.servlet.AdminApiServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>AnnouncementServlet</servlet-name>
+    <servlet-name>AdminApiServlet</servlet-name>
     <url-pattern>/announcements</url-pattern>
   </servlet-mapping>
-
-  <servlet>
-    <servlet-name>DaySettingServlet</servlet-name>
-    <servlet-class>com.eduflow.servlet.DaySettingServlet</servlet-class>
-  </servlet>
   <servlet-mapping>
-    <servlet-name>DaySettingServlet</servlet-name>
+    <servlet-name>AdminApiServlet</servlet-name>
     <url-pattern>/day-settings</url-pattern>
   </servlet-mapping>
 

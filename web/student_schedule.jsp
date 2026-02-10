@@ -313,7 +313,34 @@
             const li = document.createElement("li");
             li.className =
               "rounded-lg border border-slate-800 bg-slate-950/40 p-2";
-            li.textContent = a.message;
+
+            const role = (a.announcerRole || "UNKNOWN").toUpperCase();
+            const name = a.announcerName || "Unknown";
+
+            const meta = document.createElement("div");
+            meta.className = "flex items-center gap-2 mb-1";
+
+            const chip = document.createElement("span");
+            chip.className =
+              role === "ADMIN"
+                ? "px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-500/20 text-cyan-200"
+                : role === "TEACHER"
+                  ? "px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-200"
+                  : "px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-700 text-slate-200";
+            chip.textContent = role;
+
+            const by = document.createElement("span");
+            by.className = "text-xs text-slate-400";
+            by.textContent = name;
+
+            const msg = document.createElement("div");
+            msg.className = "text-sm text-slate-200";
+            msg.textContent = a.message || "";
+
+            meta.appendChild(chip);
+            meta.appendChild(by);
+            li.appendChild(meta);
+            li.appendChild(msg);
             announcementList.appendChild(li);
             visibleCount++;
           });

@@ -9,14 +9,25 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-public class LoginServlet extends BaseServlet {
+public class AuthServlet extends BaseServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    String path = req.getServletPath();
+    if ("/logout".equals(path)) {
+      handleLogout(req, resp);
+      return;
+    }
     req.getRequestDispatcher("/login.jsp").forward(req, resp);
   }
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    String path = req.getServletPath();
+    if (!"/login".equals(path)) {
+      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+
     String email = req.getParameter("email");
     String password = req.getParameter("password");
 
@@ -40,5 +51,13 @@ public class LoginServlet extends BaseServlet {
     } else {
       resp.sendRedirect(req.getContextPath() + "/student/schedule");
     }
+  }
+
+  private void handleLogout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    HttpSession session = req.getSession(false);
+    if (session != null) {
+      session.invalidate();
+    }
+    resp.sendRedirect(req.getContextPath() + "/login.jsp");
   }
 }
