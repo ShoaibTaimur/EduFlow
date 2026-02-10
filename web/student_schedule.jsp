@@ -297,7 +297,6 @@
             renderDaySchedule();
           }
         } catch (e) {
-          // keep defaults
         }
       }
 
@@ -358,7 +357,6 @@
       nextDayBtn.addEventListener("click", () => slideDay(1));
       todayBtn.addEventListener("click", jumpToToday);
       clearAnnouncementsBtn.addEventListener("click", () => {
-        // Use latest server ID as a local dismissal watermark.
         fetch(ctx + "/announcements")
           .then((res) => res.json())
           .then((data) => {

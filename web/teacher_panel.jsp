@@ -263,7 +263,6 @@
       row.querySelector('.cell-day').textContent = data.day || '';
       row.querySelector('.cell-time').textContent = (data.timeStart || '') + ' - ' + (data.timeEnd || '');
     } catch (e) {
-      // Ignore parse errors
     }
   });
 
