@@ -22,6 +22,38 @@ EduFlow manages academic class routines with controlled workflow:
 - Announcements: posted by admin/teacher, visible to all roles with sender chip
 - Admin data browser page for table inspection
 
+## UI Screenshots
+
+Screenshots are stored in `Screenshots/`.
+
+### Login Page
+
+![Login Page](Screenshots/login_page.png)
+
+### Dashboard
+
+![Dashboard](Screenshots/dashboard.png)
+
+### Student View
+
+![Student Panel](Screenshots/student_panel.png)
+
+### Teacher View
+
+![Teacher Panel](Screenshots/teachers_panel.png)
+
+### Admin View
+
+![Admin Panel 1](Screenshots/admin_panel_1.png)
+![Admin Panel 2](Screenshots/admin_panel_2.png)
+
+### Admin Data Browser
+
+![Data Browser 1](Screenshots/admin_data_browser_1.png)
+![Data Browser 2](Screenshots/admin_data_browser_2.png)
+![Data Browser 3](Screenshots/admin_data_browser_3.png)
+![Data Browser 4](Screenshots/admin_data_browser_4.png)
+
 ## Tech Stack
 
 - Java 17+

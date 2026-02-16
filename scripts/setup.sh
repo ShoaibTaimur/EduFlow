@@ -7,7 +7,8 @@ cd "$ROOT_DIR"
 DB_CONTAINER="oraclexe"
 DB_IMAGE="gvenzl/oracle-xe:21-slim"
 DB_PASSWORD="1234"
-DB_CONN="system/${DB_PASSWORD}@//localhost:1521/XEPDB1"
+DB_SERVICE=""
+DB_CONN=""
 WAR_PATH="dist/EduFlow.war"
 FORCE_DB_INIT="${FORCE_DB_INIT:-0}"
 
@@ -16,6 +17,45 @@ fail() { printf "\n[EduFlow][ERROR] %s\n" "$1"; exit 1; }
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "Missing required command: $1"
+}
+
+sqlplus_ok() {
+  local conn="$1"
+  local sql="$2"
+  local out
+  out="$("${docker_cmd[@]}" exec -i "$DB_CONTAINER" bash -lc "sqlplus -s $conn <<'SQL'
+SET HEADING OFF FEEDBACK OFF PAGESIZE 0 VERIFY OFF ECHO OFF
+WHENEVER SQLERROR EXIT FAILURE
+$sql
+EXIT;
+SQL" 2>/dev/null || true)"
+  if echo "$out" | grep -Eq 'ORA-|SP2-'; then
+    return 1
+  fi
+  return 0
+}
+
+detect_password_from_container_env() {
+  local envpass=""
+  envpass="$("${docker_cmd[@]}" inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$DB_CONTAINER" 2>/dev/null \
+    | awk -F= '/^ORACLE_PASSWORD=/{print $2; exit}')"
+  if [[ -n "$envpass" ]]; then
+    DB_PASSWORD="$envpass"
+  fi
+}
+
+detect_working_conn() {
+  local service
+  local candidates=("XEPDB1" "XE" "FREEPDB1")
+  for service in "${candidates[@]}"; do
+    local conn="system/${DB_PASSWORD}@//localhost:1521/${service}"
+    if sqlplus_ok "$conn" "SELECT 'READY_OK' FROM dual;"; then
+      DB_SERVICE="$service"
+      DB_CONN="$conn"
+      return 0
+    fi
+  done
+  return 1
 }
 
 require_cmd java
@@ -86,21 +126,23 @@ for _ in {1..180}; do
     continue
   fi
 
-  # Real readiness check: can we open an Oracle session?
-  if "${docker_cmd[@]}" exec -i "$DB_CONTAINER" bash -lc "echo 'EXIT;' | sqlplus -s $DB_CONN" >/dev/null 2>&1; then
+  detect_password_from_container_env
+  if detect_working_conn; then
     READY=1
     break
   fi
   sleep 2
 done
 [[ "$READY" -eq 1 ]] || fail "Oracle XE did not become ready in time. Check: ${docker_cmd[*]} logs $DB_CONTAINER"
+log "Oracle ready with service=$DB_SERVICE"
 
 db_has_schema=0
-if "${docker_cmd[@]}" exec -i "$DB_CONTAINER" bash -lc "sqlplus -s $DB_CONN <<'SQL'
+if sqlplus_ok "$DB_CONN" "SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME='USERS';" && \
+  "${docker_cmd[@]}" exec -i "$DB_CONTAINER" bash -lc "sqlplus -s $DB_CONN <<'SQL'
 SET HEADING OFF FEEDBACK OFF PAGESIZE 0 VERIFY OFF ECHO OFF
 SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME='USERS';
 EXIT;
-SQL" | tr -d '[:space:]' | grep -q '^1$'; then
+SQL" 2>/dev/null | tr -d '[:space:]' | grep -q '^1$'; then
   db_has_schema=1
 fi
 
@@ -108,12 +150,15 @@ if [[ "$FORCE_DB_INIT" == "1" || "$db_has_schema" -eq 0 ]]; then
   log "Applying schema and seed"
   "${docker_cmd[@]}" cp database/schema.sql "$DB_CONTAINER":/tmp/schema.sql
   "${docker_cmd[@]}" cp database/seed.sql "$DB_CONTAINER":/tmp/seed.sql
-  "${docker_cmd[@]}" exec -i "$DB_CONTAINER" bash -lc "sqlplus -s $DB_CONN <<'SQL'
+  sql_out="$("${docker_cmd[@]}" exec -i "$DB_CONTAINER" bash -lc "sqlplus -s $DB_CONN <<'SQL'
 @/tmp/schema.sql
 @/tmp/seed.sql
 COMMIT;
 EXIT;
-SQL"
+SQL" 2>&1 || true)"
+  if echo "$sql_out" | grep -Eq 'ORA-|SP2-'; then
+    fail "Schema/seed apply failed. Container may use different credentials/service. Try: docker rm -f $DB_CONTAINER && ./run_eduflow.sh"
+  fi
 else
   log "Schema already exists; skipping schema/seed apply. Set FORCE_DB_INIT=1 to re-apply."
 fi
