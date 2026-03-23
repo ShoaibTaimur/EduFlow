@@ -37,5 +37,6 @@ lib/*.jar
 # Node (if frontend tooling added later)
 node_modules/
 
-# Local viva notes (do not commit)
+# Local viva notes and presentation (do not commit)
 VIVA_NOTES_LOCAL.md
+PRESENTATION_README.md
